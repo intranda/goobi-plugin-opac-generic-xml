@@ -26,6 +26,7 @@ import org.jdom2.xpath.XPathFactory;
 
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.HttpClientHelper;
+import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import de.unigoettingen.sub.search.opac.ConfigOpacDoctype;
 import lombok.Getter;
@@ -64,17 +65,23 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     private int hit = 0;
 
+    private String gattung;
+
     @Override
     public Fileformat search(String inSuchfeld, String inSuchbegriff, ConfigOpacCatalogue coc, Prefs prefs) throws Exception {
 
         if (namespaces == null) {
             loadConfiguration();
         }
+        Fileformat mm = null;
         if (StringUtils.isNotBlank(inSuchbegriff)) {
             String url = coc.getAddress() + inSuchbegriff;
-            // TODO
-            String response = HttpClientHelper.getStringFromUrl(url);
 
+            String response = HttpClientHelper.getStringFromUrl(url);
+            if (StringUtils.isBlank(response)) {
+                hit = 0;
+                return null;
+            }
             Element element = getRecordFromResponse(response);
             if (element == null) {
                 hit = 0;
@@ -82,7 +89,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
             }
             hit = 1;
 
-            Fileformat mm = new MetsMods(prefs);
+            mm = new MetsMods(prefs);
             DigitalDocument digitalDocument = new DigitalDocument();
             mm.setDigitalDocument(digitalDocument);
             DocStruct volume = null;
@@ -103,6 +110,10 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(sp.getOne()));
                 if (sp.getTwo() != null) {
                     anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(sp.getTwo()));
+                    anchor.addChild(volume);
+                    digitalDocument.setLogicalDocStruct(anchor);
+                } else {
+                    digitalDocument.setLogicalDocStruct(volume);
                 }
                 // use configured doc type
             } else {
@@ -115,12 +126,11 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 } else {
                     digitalDocument.setLogicalDocStruct(volume);
                 }
-
             }
 
+            gattung = volume.getType().getName();
             DocStruct physical = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
             digitalDocument.setPhysicalDocStruct(physical);
-
             for (ConfigurationEntry sp : metadataList) {
                 List<String> metadataValues = queryXmlFile(element, sp);
 
@@ -128,7 +138,6 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 if (mdt == null) {
                     log.error("Cannot initialize metadata type " + sp.getMetadataName());
                 } else {
-
                     for (String value : metadataValues) {
                         try {
                             if (mdt.getIsPerson()) {
@@ -171,10 +180,8 @@ public class XmlOpacPlugin implements IOpacPlugin {
                     }
                 }
             }
-            return mm;
-
         }
-        return null;
+        return mm;
     }
 
     private List<String> queryXmlFile(Element element, ConfigurationEntry entry) {
@@ -206,7 +213,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
         docstructMap = new HashMap<>();
         namespaces = new ArrayList<>();
         metadataList = new ArrayList<>();
-        XMLConfiguration config = ConfigPlugins.getPluginConfig("opac_ead");
+        XMLConfiguration config = ConfigPlugins.getPluginConfig(title);
         config.setExpressionEngine(new XPathExpressionEngine());
         List<HierarchicalConfiguration> fields = config.configurationsAt("/namespaces/namespace");
         for (HierarchicalConfiguration sub : fields) {
@@ -233,7 +240,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
             documentTypeQuery.setXpathType(doctypequery.getString("@xpathType", "Element"));
         }
 
-        fields = config.configurationsAt("mapping/metadata");
+        fields = config.configurationsAt("mapping/element");
         for (HierarchicalConfiguration sub : fields) {
             String metadataName = sub.getString("@name");
             String xpathValue = sub.getString("@xpath");
@@ -255,9 +262,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
         builder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         try {
             Document doc = builder.build(new StringReader(response), "utf-8");
-            Element oaiRootElement = doc.getRootElement();
+            Element rootElement = doc.getRootElement();
 
-            return oaiRootElement;
+            return rootElement;
         } catch (JDOMException | IOException e) {
             log.error(e);
         }
@@ -276,7 +283,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     @Override
     public ConfigOpacDoctype getOpacDocType() {
-        return null;
+        return ConfigOpac.getInstance().getDoctypeByName(gattung);
     }
 
     @Override
@@ -291,7 +298,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     @Override
     public String getGattung() {
-        return null;
+        return gattung;
     }
 
 }

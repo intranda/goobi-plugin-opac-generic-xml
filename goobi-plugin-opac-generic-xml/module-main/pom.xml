@@ -11,7 +11,7 @@
     </properties>
     <parent>
         <groupId>de.intranda.goobi.plugins.opac</groupId>
-        <artifactId>ead</artifactId>
+        <artifactId>generic-xml</artifactId>
         <version>0.0.1</version>
     </parent>
     <repositories>
