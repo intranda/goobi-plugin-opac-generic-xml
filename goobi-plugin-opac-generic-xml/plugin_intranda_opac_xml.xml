@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config_plugin>
-	<!-- define the list of namespaces. It is used to read the document and run xpath queries -->
+	<!-- define the list of namespaces. It is used to read the document and run xpath queries 
 	<namespaces>
 		<namespace prefix="ead" uri="urn:isbn:1-931666-22-9" />
 		<namespace prefix="oai" uri="http://www.openarchives.org/OAI/2.0/" />
-	</namespaces>
+	</namespaces>-->
 
 	<docstructs>
-		<!-- use the configured document type --->
+		<!-- use the configured document type -->
 		<!-- or detect the document type in xml record -->
 	<!--
 		<documenttype isanchor="false">Record</documenttype>
@@ -15,43 +15,41 @@
 	-->
 
 		<!-- run the query and compare the result with the list -->
-		<doctumenttypequery xpath="//ead:c/@level"  xpathType="Attribute" />
+		<doctumenttypequery xpath="/soutron/catalogs_view/ct/cat/rt/@name"  xpathType="Attribute" />
 		<docstruct xmlName="Book" rulesetName="Monograph"/>
 		<docstruct xmlName="Photo" rulesetName="Picture"/>
-		<docstruct xmlName="File" rulesetName="Item"/>
+		<docstruct xmlName="File" rulesetName="File"/>
 		<docstruct xmlName="Periodica" rulesetName="Volume" anchorName="Periodical"/>
 	</docstructs>
 
 
 
 	<mapping>
-			<metadata name="TitleDocMain" xpath="//ead:c[@level='file']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
-			<metadata name="TitleDocMainShort" xpath="//ead:c[@level='file']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
-			<metadata name="CatalogIDDigital" xpath="//ead:c[@level='file']/@id" level="topstruct" xpathType="Attribute"/>
-			<metadata name="CatalogIDSource" xpath="//ead:c[@level='file']/@id" level="topstruct" xpathType="Attribute"/>
-			<!--			<metadata name="singleDigCollection" xpath="//ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper"  level="topstruct" xpathType="Element"/>  -->
-			<metadata name="PublicationRun" xpath="//ead:c[@level='file']/ead:did/ead:unitdate" level="topstruct" xpathType="Element"/>
-			<metadata name="PublicationStart" xpath="substring-before(//ead:c[@level='file']/ead:did/ead:unitdate/@normal\, '/')" level="topstruct" xpathType="String"/>
-            <metadata name="PublicationEnd" xpath="substring-after(//ead:c[@level='file']/ead:did/ead:unitdate/@normal\, '/')" level="topstruct" xpathType="String"/>
-			<metadata name="ShelfmarkOld" xpath="//ead:c[@level='file']/ead:did/ead:unitid[@type='Altsignatur']" level="topstruct" xpathType="Element"/>
-			<metadata name="shelfmarksource" xpath="concat('HU UA '\, //ead:c[@level='collection']/ead:did/ead:unitid\, ' Nr. '\, //ead:c[@level='file']/ead:did/ead:unitid)" level="topstruct" xpathType="String"/>
-			<!--			<metadata name="AccessLicense" xpath="//ead:c[@level='file']/ead:accessrestrict/ead:p" level="topstruct" xpathType="Element"/>
-			<metadata name="TitleDocSub1" xpath="//ead:c[@level='class']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
-			<metadata name="Genre" xpath="//ead:c[@level='file']/ead:did/ead:physdesc/ead:genreform" level="topstruct" xpathType="Element"/>
-			<metadata name="History" xpath="//ead:c[@level='collection']/ead:scopecontent[/ead:head/text() = 'Bestandsgeschichte']/ead:p" level="topstruct" xpathType="Element"/>
-			<metadata name="Description" xpath="//ead:c[@level='collection']/ead:scopecontent[/ead:head/text() = 'Beschreibung']/ead:p" level="topstruct" xpathType="Element"/> -->
-			<metadata name="SizeSourcePrint" xpath="//ead:c[@level='file']/ead:did/ead:physdesc/ead:extent" level="topstruct" xpathType="Element"/>
-			<metadata name="OtherPerson" xpath="//ead:c[@level='file']/ead:odd/ead:p" level="topstruct" xpathType="Element"/>
-            <metadata name="Information" xpath="//ead:c[@level='file']/ead:did/ead:abstract[@type='Enthält']" level="topstruct" xpathType="Element"/>
-            <metadata name="Contains" xpath="//ead:c[@level='file']/ead:did/ead:abstract[@type='Darin']" level="topstruct" xpathType="Element"/>
-			<metadata name="Provenience" xpath="//ead:c[@level='file']/ead:did/ead:origination" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/@name" name="singleDigCollection" level="topstruct" xpathType="Attribute" />
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Title']/vs/v[@seq='1']" name="TitleDocMain" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='CID']/vs/v" name="CatalogIDDigital" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='ISBN']/vs/v" name="ISBN" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Notes']/vs/v" name="Note" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Publisher']/vs/v" name="PublisherName" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Language']/vs/v" name="DocLanguage" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Subjects']/vs/v" name="Subject" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Abstract']/vs/v" name="Abstract" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Sort Year']/vs/v" name="CurrentNoSorting" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Date of Publication']/vs/v" name="PublicationYear" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Coverage Dates']/vs/v" name="CoverageDates" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Date notes']/vs/v" name="DateNotes" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Place of Publication']/vs/v" name="PlaceOfPublication" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Accompanying Material']/vs/v" name="Description" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Geographical Name']/vs/v" name="SubjectGeographic" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Duration']/vs/v" name="Note" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Reference Number']/vs/v" name="shelfmarksource" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Scope/Content']/vs/v" name="Abstract" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Extent']/vs/v" name="physicalDescriptionExtent" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Credit Line']/vs/v" name="CreditLine" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Personal Name Keyword']/vs/v" name="SubjectPerson" level="topstruct" xpathType="Element"/>
+        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Institutional Keyword']/vs/v" name="SubjectCorporate" level="topstruct" xpathType="Element" />
 
 
-<!-- concat example: -->
-<!--
-<metadata name="singleDigCollection" xpath="concat(//ead:eadheader/ead:filedesc/ead:titlestmt/ead:titleproper\,'#'\, //ead:c[@level='collection']/ead:did/ead:unitid)" level="topstruct" xpathType="String"/>
-
--->
 
 	</mapping>
 </config_plugin>
