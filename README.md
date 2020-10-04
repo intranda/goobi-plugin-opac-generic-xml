@@ -15,8 +15,8 @@ Detail | Description
 **Plugin identifier**       | intranda_opac_xml
 **Plugin type**             | Opac plugin
 **Licence**                 | GPL 2.0 or newer  
-**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/opac/goobi-plugin-opac-generic-xml
-**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/opac/goobi-plugin-opac-generic-xml
+**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/opac/intranda_opac_generic_xml 
+**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/opac/intranda_opac_generic_xml 
 
 ## Goobi details
 
