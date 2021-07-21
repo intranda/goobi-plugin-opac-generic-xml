@@ -49,7 +49,7 @@
     </dependency>
 </dependencies>
 <scm>
-    <url>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-step-ocrselector.git</url>
-    <connection>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-step-ocrselector.git</connection>
+    <url>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-opac-generic-xml.git</url>
+    <connection>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-opac-generic-xml.git</connection>
   </scm>
 </project>
