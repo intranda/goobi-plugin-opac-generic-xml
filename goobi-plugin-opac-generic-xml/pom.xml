@@ -10,7 +10,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <goobi.version>21.06.6</goobi.version>
+    <goobi.version>21.06.7</goobi.version>
   </properties>
   <modules>
     <module>module-main</module>
@@ -47,5 +47,9 @@
       <version>1.18.4</version>
       <scope>provided</scope>
     </dependency>
-  </dependencies>
+</dependencies>
+<scm>
+    <url>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-step-ocrselector.git</url>
+    <connection>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-step-ocrselector.git</connection>
+  </scm>
 </project>
