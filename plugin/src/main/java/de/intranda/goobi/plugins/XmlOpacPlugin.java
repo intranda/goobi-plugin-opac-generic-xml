@@ -2,6 +2,10 @@ package de.intranda.goobi.plugins;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,12 +29,15 @@ import org.jdom2.input.sax.XMLReaders;
 import org.jdom2.xpath.XPathFactory;
 
 import de.sub.goobi.config.ConfigPlugins;
+import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.HttpClientHelper;
+import de.sub.goobi.helper.StorageProvider;
+import de.sub.goobi.helper.StorageProviderInterface;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import de.unigoettingen.sub.search.opac.ConfigOpacDoctype;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
@@ -42,7 +49,7 @@ import ugh.dl.Prefs;
 import ugh.fileformats.mets.MetsMods;
 
 @PluginImplementation
-@Log4j
+@Log4j2
 public class XmlOpacPlugin implements IOpacPlugin {
 
     private List<Namespace> namespaces = null;
@@ -74,10 +81,32 @@ public class XmlOpacPlugin implements IOpacPlugin {
             loadConfiguration();
         }
         Fileformat mm = null;
+        String response = null;
         if (StringUtils.isNotBlank(inSuchbegriff)) {
-            String url = coc.getAddress() + inSuchbegriff;
+            String url = coc.getAddress();
+            if (!url.contains("{pv.id}")) {
+                Helper.setFehlerMeldung("address does not contain {pv.id} - sequence");
+                hit = 0;
+                return null;
+            }
+            url = url.replace("{pv.id}", inSuchbegriff);
 
-            String response = HttpClientHelper.getStringFromUrl(url);
+            if (url.startsWith("file://")) {
+                StorageProviderInterface SPI = new StorageProvider().getInstance();
+                Path fileLocation = Paths.get(URI.create(url));
+                if (SPI.isFileExists(fileLocation)) {
+                    try {
+                        response = new String(Files.readAllBytes(fileLocation));
+                    } catch (IOException ex) {
+                        hit = 0;
+                        log.error("Cannot open File: " + fileLocation.toString(), ex);
+                        return null;
+                    }
+                }
+            } else {
+                response = HttpClientHelper.getStringFromUrl(url);
+            }
+
             if (StringUtils.isBlank(response)) {
                 hit = 0;
                 return null;
@@ -217,12 +246,18 @@ public class XmlOpacPlugin implements IOpacPlugin {
         config.setExpressionEngine(new XPathExpressionEngine());
         List<HierarchicalConfiguration> fields = config.configurationsAt("/namespaces/namespace");
         for (HierarchicalConfiguration sub : fields) {
-            Namespace namespace = Namespace.getNamespace(sub.getString("@prefix"), sub.getString("@uri"));
+            Namespace namespace;
+            String prefix = sub.getString("@prefix", null);
+            if (StringUtils.isNotBlank(prefix)) {
+                namespace = Namespace.getNamespace(prefix, sub.getString("@uri"));
+            } else {
+                namespace = Namespace.getNamespace(sub.getString("@uri"));
+            }
             namespaces.add(namespace);
         }
 
-        documentType = config.getString("/documenttype[@isanchor='false']", null);
-        anchorType = config.getString("/documenttype[@isanchor='true']", null);
+        documentType = config.getString("/docstructs/documenttype[@isanchor='false']", null);
+        anchorType = config.getString("/docstructs/documenttype[@isanchor='true']", null);
 
         List<HierarchicalConfiguration> docstructList = config.configurationsAt("/docstructs/docstruct");
         if (docstructList != null) {
@@ -233,8 +268,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 docstructMap.put(xmlName, new StringPair(rulesetName, anchorName));
             }
         }
-        HierarchicalConfiguration doctypequery = config.configurationAt("/docstructs/doctumenttypequery");
-        if (doctypequery != null) {
+        List<HierarchicalConfiguration> doctypequeries = config.configurationsAt("/docstructs/doctumenttypequery");
+        if (!doctypequeries.isEmpty()) {
+            HierarchicalConfiguration doctypequery = doctypequeries.get(0);
             documentTypeQuery = new ConfigurationEntry();
             documentTypeQuery.setXpath(doctypequery.getString("@xpath"));
             documentTypeQuery.setXpathType(doctypequery.getString("@xpathType", "Element"));
