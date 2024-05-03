@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -32,6 +33,7 @@ import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
+import de.sub.goobi.helper.UghHelper;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import de.unigoettingen.sub.search.opac.ConfigOpacDoctype;
@@ -61,6 +63,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     private String documentType = null;
     private String anchorType = null;
+    protected String atstsl;
 
     private XPathFactory xFactory = XPathFactory.instance();
 
@@ -76,7 +79,8 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     @Override
     public Fileformat search(String inSuchfeld, String inSuchbegriff, ConfigOpacCatalogue coc, Prefs prefs) throws Exception {
-
+        String myTitle = "";
+        StringBuilder authors = new StringBuilder();
         if (namespaces == null) {
             loadConfiguration();
         }
@@ -170,6 +174,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
                     for (String value : metadataValues) {
                         try {
                             if (mdt.getIsPerson()) {
+                                authors.append(value).append("; ");
                                 Person p = new Person(mdt);
                                 if (value.contains(",")) {
                                     p.setLastname(value.substring(0, value.indexOf(",")).trim());
@@ -188,7 +193,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
                                     anchor.addPerson(p);
                                 }
                             } else {
-
+                                if ("TitleDocMain".equals(sp.getMetadataName())) {
+                                    myTitle = value.toLowerCase();
+                                }
                                 Metadata md = new Metadata(mdt);
                                 md.setValue(value);
                                 if ("physical".equals(sp.getLevel())) {
@@ -210,6 +217,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 }
             }
         }
+        this.atstsl = createAtstsl(myTitle, authors.toString());
         return mm;
     }
 
@@ -312,9 +320,12 @@ public class XmlOpacPlugin implements IOpacPlugin {
         return hit;
     }
 
+    /* (non-Javadoc)
+    * @see de.sub.goobi.Import.IOpac#getAtstsl()
+    */
     @Override
     public String getAtstsl() {
-        return null;
+        return this.atstsl;
     }
 
     @Override
@@ -323,13 +334,64 @@ public class XmlOpacPlugin implements IOpacPlugin {
     }
 
     @Override
-    public String createAtstsl(String value, String value2) {
-        return null;
+    public String createAtstsl(String myTitle, String autor) {
+        String myAtsTsl = "";
+        if (autor != null && !"".equals(autor)) {
+            /* autor */
+            if (autor.length() > 4) {
+                myAtsTsl = autor.substring(0, 4);
+            } else {
+                myAtsTsl = autor;
+                /* titel */
+            }
+
+            if (myTitle.length() > 4) {
+                myAtsTsl += myTitle.substring(0, 4);
+            } else {
+                myAtsTsl += myTitle;
+            }
+        }
+
+        // if no author {
+        if (autor == null || "".equals(autor)) {
+            myAtsTsl = "";
+            StringTokenizer tokenizer = new StringTokenizer(myTitle);
+            int counter = 1;
+            while (tokenizer.hasMoreTokens()) {
+                String tok = tokenizer.nextToken();
+                if (counter == 1) {
+                    if (tok.length() > 4) {
+                        myAtsTsl += tok.substring(0, 4);
+                    } else {
+                        myAtsTsl += tok;
+                    }
+                }
+                if (counter == 2 || counter == 3) {
+                    if (tok.length() > 2) {
+                        myAtsTsl += tok.substring(0, 2);
+                    } else {
+                        myAtsTsl += tok;
+                    }
+                }
+                if (counter == 4) {
+                    if (tok.length() > 1) {
+                        myAtsTsl += tok.substring(0, 1);
+                    } else {
+                        myAtsTsl += tok;
+                    }
+                }
+                counter++;
+            }
+        }
+        // replace umlauts
+        myAtsTsl = UghHelper.convertUmlaut(myAtsTsl);
+        myAtsTsl = myAtsTsl.replaceAll("[\\W]", "");
+        return myAtsTsl;
     }
 
     @Override
     public void setAtstsl(String createAtstsl) {
-
+        atstsl = createAtstsl;
     }
 
     @Override
