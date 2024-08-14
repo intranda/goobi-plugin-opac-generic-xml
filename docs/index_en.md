@@ -124,3 +124,5 @@ Alternatively, the document type can also be read from the XML record. Then the 
 The mapping is then configured for persons and metadata in the `<element>` area. Here is a list of `<element>` with the attributes `xpath`, level, `xpathType` and `name`. In `xpath` an XPath expression is configured, which describes in which part of the XML document the content is expected, in `name` the name of the metadata is defined, in which the content is to be written afterwards. The specification in `level` can be used to control whether the metadata for multi-volume works is to be written to the data record of the anchor or the volume. `xpathType` specifies the type of the result of the XPath query. This can be an `Element`, `Attribute` or `String`.
 
 In the case of `String`, manipulations such as concat, substring can also be used. The possible functions are described here:[https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
+
+![Selection of the plugin](screen1_en.png)
