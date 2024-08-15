@@ -29,6 +29,10 @@ Die Datei`plugin_intranda_opac_xml.xml` muss ebenfalls für den Nutzer `tomcat` 
 ```
 
 ## Überblick und Funktionsweise
+Nachdem das Plugin vollständig installiert wurde, steht es in der Anlegemaske zur Verfügung.
+
+![Anlegemaske mit Auswahl des Plugins](screen1_de.png)
+
 Wenn in Goobi nach einem Identifier gesucht wird, wird im Hintergrund eine Anfrage an die konfigurierte URL oder an das Dateisystem gestellt:
 
 ```bash
@@ -123,5 +127,3 @@ Alternativ kann der Typ des Dokuments auch aus dem XML Record gelesen werden. Da
 Anschließend wird das Mapping für Personen und Metadaten im Bereich `<mapping>` konfiguriert. Hier gibt es eine Liste von `<element>` mit den Attributen `xpath`, `level`, `xpathType` und `name`. In `xpath` wird ein XPath Ausdruck konfiguriert, der beschreibt, in welchem Teil des XML Dokuments der Inhalt erwartet wird, in `name`wird der Name des Metadatums definiert, in das der Inhalt anschließend geschrieben werden soll. Mit der Angabe in `level` kann gesteuert werden, ob das Metadatum bei mehrbändigen Werken zum Datensatz des Anchors oder des Bandes geschrieben werden soll. In `xpathType` wird angegeben, welchen Typ das Ergebnis der XPath query hat. Dies kann ein `Element`, `Attribute` oder `String` sein.
 
 Im Fall von `String` können auch Manipulationen wie concat, substring genutzt werden. Die möglichen Funktionen sind hier beschrieben: [https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
-
-![Auswahl des Plugins](screen1_de.png)
