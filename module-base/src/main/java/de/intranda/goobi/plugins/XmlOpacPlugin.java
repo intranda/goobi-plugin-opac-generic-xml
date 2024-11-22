@@ -54,18 +54,20 @@ import ugh.fileformats.mets.MetsMods;
 @Log4j2
 public class XmlOpacPlugin implements IOpacPlugin {
 
+    private static final long serialVersionUID = -2018204723594173535L;
+
     private List<Namespace> namespaces = null;
 
-    private List<ConfigurationEntry> metadataList = null;
+    private transient List<ConfigurationEntry> metadataList = null;
 
-    private ConfigurationEntry documentTypeQuery;
+    private transient ConfigurationEntry documentTypeQuery;
     private Map<String, StringPair> docstructMap;
 
     private String documentType = null;
     private String anchorType = null;
     protected String atstsl;
 
-    private XPathFactory xFactory = XPathFactory.instance();
+    private transient XPathFactory xFactory = XPathFactory.instance();
 
     @Getter
     private PluginType type = PluginType.Opac;
@@ -96,9 +98,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
             url = url.replace("{pv.id}", inSuchbegriff);
 
             if (url.startsWith("file://")) {
-                StorageProviderInterface SPI = new StorageProvider().getInstance();
+                StorageProviderInterface spi = StorageProvider.getInstance();
                 Path fileLocation = Paths.get(URI.create(url));
-                if (SPI.isFileExists(fileLocation)) {
+                if (spi.isFileExists(fileLocation)) {
                     try {
                         response = new String(Files.readAllBytes(fileLocation));
                     } catch (IOException ex) {
@@ -306,9 +308,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
         builder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         try {
             Document doc = builder.build(new StringReader(response), "utf-8");
-            Element rootElement = doc.getRootElement();
-
-            return rootElement;
+            return doc.getRootElement();
         } catch (JDOMException | IOException e) {
             log.error(e);
         }
@@ -335,58 +335,57 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     @Override
     public String createAtstsl(String myTitle, String autor) {
-        String myAtsTsl = "";
+        StringBuilder myAtsTsl = new StringBuilder();
         if (autor != null && !"".equals(autor)) {
             /* autor */
             if (autor.length() > 4) {
-                myAtsTsl = autor.substring(0, 4);
+                myAtsTsl.append(autor.substring(0, 4));
             } else {
-                myAtsTsl = autor;
+                myAtsTsl.append(autor);
                 /* titel */
             }
 
             if (myTitle.length() > 4) {
-                myAtsTsl += myTitle.substring(0, 4);
+                myAtsTsl.append(myTitle.substring(0, 4));
             } else {
-                myAtsTsl += myTitle;
+                myAtsTsl.append(myTitle);
             }
         }
 
-        // if no author {
         if (autor == null || "".equals(autor)) {
-            myAtsTsl = "";
             StringTokenizer tokenizer = new StringTokenizer(myTitle);
             int counter = 1;
             while (tokenizer.hasMoreTokens()) {
                 String tok = tokenizer.nextToken();
                 if (counter == 1) {
                     if (tok.length() > 4) {
-                        myAtsTsl += tok.substring(0, 4);
+                        myAtsTsl.append(tok.substring(0, 4));
                     } else {
-                        myAtsTsl += tok;
+                        myAtsTsl.append(tok);
                     }
                 }
                 if (counter == 2 || counter == 3) {
                     if (tok.length() > 2) {
-                        myAtsTsl += tok.substring(0, 2);
+                        myAtsTsl.append(tok.substring(0, 2));
                     } else {
-                        myAtsTsl += tok;
+                        myAtsTsl.append(tok);
                     }
                 }
                 if (counter == 4) {
                     if (tok.length() > 1) {
-                        myAtsTsl += tok.substring(0, 1);
+                        myAtsTsl.append(tok.substring(0, 1));
                     } else {
-                        myAtsTsl += tok;
+                        myAtsTsl.append(tok);
                     }
                 }
                 counter++;
             }
         }
         // replace umlauts
-        myAtsTsl = UghHelper.convertUmlaut(myAtsTsl);
-        myAtsTsl = myAtsTsl.replaceAll("[\\W]", "");
-        return myAtsTsl;
+        String s = myAtsTsl.toString();
+        s = UghHelper.convertUmlaut(s);
+        s = s.replaceAll("[\\W]", "");
+        return s;
     }
 
     @Override
