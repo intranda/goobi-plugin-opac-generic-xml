@@ -70,7 +70,7 @@ The attribute `title` contains the name under which the catalog can be selected 
 
 Only one search query can be configured. Therefore the other search options can be hidden. This happens within the block `<searchFields>`. In the configuration described above, only one identifier can be searched for.
 
-The value of the `address`- attribute must contain the string {pv-id}, so that the plugin inserts the search value at the right place. E.g. to filter in a hotfolder based on the file name e.g. `/import/hotfolder/{pv.id}.xml`.
+The value of the `address`- attribute must contain the string `{pv-id}`, so that the plugin inserts the search value at the right place. E.g. to filter in a hotfolder based on the file name e.g. `/import/hotfolder/{pv.id}.xml`.
 
 The plugin can also read files from the file system if needed. For example from a hotfolder where files are stored. To do this, the following must be observed. The string in `address` must begin with `file://` and the file must have a unique name that corresponds to the process title, for example.
 
