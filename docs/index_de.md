@@ -69,7 +69,7 @@ Das Attribut `title` enthält den Namen, unter dem der Katalog in der Nutzerober
 
 Es ist nur eine Suchanfrage konfigurierbar. Daher können die anderen Suchoptionen ausgeblendet werden. Dies geschieht innerhalb des `<searchFields>` Blocks. In der oben beschriebenen Konfiguration kann nur nach einem Identifier gesucht werden.
 
-Der Wert des `address`- Attributes muss den String {pv-id} enthalten, damit das Plugin den Suchwert an der richtigen Stelle einfügt. Z.b. um in einem Hotfolder anhand des Dateinamens zu filtern z.B. `/import/hotfolder/{pv.id}.xml`.
+Der Wert des `address`- Attributes muss den String `{pv-id}` enthalten, damit das Plugin den Suchwert an der richtigen Stelle einfügt. Z.b. um in einem Hotfolder anhand des Dateinamens zu filtern z.B. `/import/hotfolder/{pv.id}.xml`.
 
 Das Plugin kann bei Bedarf auch Dateien aus dem Dateisystem lesen. Zum Beispiel aus einem Hotfolder in dem Dateien abgelegt werden. Dazu muss folgendes beachtet werden. Der String in `address` muss mit `file://` beginnen und die Datei muss einen eindeutigen Namen haben der z.B. dem Prozesstitel entspricht.
 
