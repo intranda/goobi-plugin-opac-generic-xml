@@ -3,6 +3,10 @@ title: Generic XML Import
 identifier: intranda_opac_xml
 published: true
 description: OPAC Plugin for data transfer of XML data records from an OPAC
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Opac Plugin
 ---
 ## Introduction
 This documentation describes the installation, configuration and use of the plugin. This plugin can be used to retrieve data from an external system and transfer it to Goobi. The catalog must have an API that can be used to deliver data records as XML.Details
