@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,24 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.impl.auth.NTLMSchemeFactory;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
@@ -67,6 +86,10 @@ public class XmlOpacPlugin implements IOpacPlugin {
     private String anchorType = null;
     protected String atstsl;
 
+    private String authenticationType = "none";
+    private String username;
+    private String password;
+
     private transient XPathFactory xFactory = XPathFactory.instance();
 
     @Getter
@@ -110,7 +133,41 @@ public class XmlOpacPlugin implements IOpacPlugin {
                     }
                 }
             } else {
-                response = HttpUtils.getStringFromUrl(url);
+                CloseableHttpClient httpClient = null;
+                if ("NTLM".equalsIgnoreCase(authenticationType)) {
+                    CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                    credsProvider.setCredentials(AuthScope.ANY, new NTCredentials(username, password, null, null));
+                    Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider> create()
+                            .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                            .build();
+
+                    RequestConfig config = RequestConfig.custom()
+                            .setConnectTimeout(60 * 1000)
+                            .setConnectionRequestTimeout(60 * 1000)
+                            .setCookieSpec(CookieSpecs.DEFAULT)
+                            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.KERBEROS, AuthSchemes.SPNEGO))
+                            .build();
+
+                    httpClient = HttpClientBuilder.create()
+                            .setDefaultCredentialsProvider(credsProvider)
+                            .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+                            .setConnectionManager(new PoolingHttpClientConnectionManager())
+                            .setDefaultCookieStore(new BasicCookieStore())
+                            .setDefaultRequestConfig(config)
+                            .build();
+                } else if ("BASIC".equalsIgnoreCase(authenticationType)) {
+                    CredentialsProvider credsProvider = new BasicCredentialsProvider();
+                    credsProvider.setCredentials(AuthScope.ANY,
+                            new UsernamePasswordCredentials(username, password));
+                    httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
+                } else {
+                    // default client
+                    httpClient = HttpClientBuilder.create().build();
+                }
+
+                HttpGet method = new HttpGet(url);
+
+                response = httpClient.execute(method, HttpUtils.stringResponseHandler);
             }
 
             if (StringUtils.isBlank(response)) {
@@ -299,6 +356,10 @@ public class XmlOpacPlugin implements IOpacPlugin {
             entry.setXpathType(xpathType);
             metadataList.add(entry);
         }
+
+        authenticationType = config.getString("/authorization/@type", "none");
+        username = config.getString("/authorization/username");
+        password = config.getString("/authorization/password");
     }
 
     private Element getRecordFromResponse(String response) {
