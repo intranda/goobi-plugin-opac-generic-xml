@@ -45,7 +45,6 @@ import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.filter.Filters;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.input.sax.XMLReaders;
 import org.jdom2.xpath.XPathFactory;
 
 import de.sub.goobi.config.ConfigPlugins;
@@ -53,6 +52,7 @@ import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
 import de.sub.goobi.helper.UghHelper;
+import de.sub.goobi.helper.XmlTools;
 import de.unigoettingen.sub.search.opac.ConfigOpac;
 import de.unigoettingen.sub.search.opac.ConfigOpacCatalogue;
 import de.unigoettingen.sub.search.opac.ConfigOpacDoctype;
@@ -174,6 +174,12 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 hit = 0;
                 return null;
             }
+
+            // remove BOM
+            if (response.startsWith("\uFEFF")) {
+                response = response.substring(1);
+            }
+
             Element element = getRecordFromResponse(response);
             if (element == null) {
                 hit = 0;
@@ -188,7 +194,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
             DocStruct anchor = null;
             // get doc type from xml record
             if (documentTypeQuery != null) {
-                List<String> val = queryXmlFile(element, documentTypeQuery);
+                List<String> val = queryXmlFile(element, documentTypeQuery, inSuchbegriff);
                 if (val.isEmpty()) {
                     hit = 0;
                     log.info("No document type detected in xml file");
@@ -224,7 +230,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
             DocStruct physical = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
             digitalDocument.setPhysicalDocStruct(physical);
             for (ConfigurationEntry sp : metadataList) {
-                List<String> metadataValues = queryXmlFile(element, sp);
+                List<String> metadataValues = queryXmlFile(element, sp, inSuchbegriff);
 
                 MetadataType mdt = prefs.getMetadataTypeByName(sp.getMetadataName());
                 if (mdt == null) {
@@ -280,23 +286,25 @@ public class XmlOpacPlugin implements IOpacPlugin {
         return mm;
     }
 
-    private List<String> queryXmlFile(Element element, ConfigurationEntry entry) {
+    private List<String> queryXmlFile(Element element, ConfigurationEntry entry, String id) {
         List<String> metadataValues = new ArrayList<>();
+
+        String xpath = entry.getXpath().replace("{pv.id}", id);
         if ("Element".equalsIgnoreCase(entry.getXpathType())) {
-            List<Element> data = xFactory.compile(entry.getXpath(), Filters.element(), null, namespaces).evaluate(element);
+            List<Element> data = xFactory.compile(xpath, Filters.element(), null, namespaces).evaluate(element);
             for (Element e : data) {
                 String value = e.getValue();
                 metadataValues.add(value);
             }
         } else if ("Attribute".equalsIgnoreCase(entry.getXpathType())) {
-            List<Attribute> data = xFactory.compile(entry.getXpath(), Filters.attribute(), null, namespaces).evaluate(element);
+            List<Attribute> data = xFactory.compile(xpath, Filters.attribute(), null, namespaces).evaluate(element);
             for (Attribute a : data) {
                 String value = a.getValue();
                 metadataValues.add(value);
             }
 
         } else {
-            List<String> data = xFactory.compile(entry.getXpath(), Filters.fstring(), null, namespaces).evaluate(element);
+            List<String> data = xFactory.compile(xpath, Filters.fstring(), null, namespaces).evaluate(element);
             for (String value : data) {
                 metadataValues.add(value);
             }
@@ -363,10 +371,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
     }
 
     private Element getRecordFromResponse(String response) {
-        SAXBuilder builder = new SAXBuilder(XMLReaders.NONVALIDATING);
-        builder.setFeature("http://xml.org/sax/features/validation", false);
-        builder.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-        builder.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        SAXBuilder builder = XmlTools.getSAXBuilder();
         try {
             Document doc = builder.build(new StringReader(response), "utf-8");
             return doc.getRootElement();
