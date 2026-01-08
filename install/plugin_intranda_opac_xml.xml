@@ -36,11 +36,15 @@
     </docstructs>
 
 
-    <!-- define the list of namespaces. It is used to read the document and run xpath queries. Leave it empty, if the xml document works without namespaces
+    <!-- define the list of namespaces. It is used to read the document and run xpath queries. Leave it empty, if the xml document works without namespaces -->
     <namespaces>
+        <!--
         <namespace prefix="sample" uri="http://example.org/ns" />
+        -->
+        <namespace  prefix="g" uri="Goobi" />
+
     </namespaces>
-    -->
+
     <!-- metadata mapping -->
     <mapping>
         <!-- possible attributes for metadata:
@@ -51,9 +55,31 @@
         - level: topstruct, anchor, physical, only relevant for multi volume structures. 
       -->
 
-        <metadata xpath="/Report/Data/Objects/Object/@ID" metadata="CatalogIDDigital" xpathType="Attribute" />
-        <metadata xpath="/Report/Data/Objects/Object/Dimensions" metadata="physicalDescriptionExtent" xpathType="Element" />
-        <metadata xpath="/Report/Data/Objects/Object/MainTitle" metadata="TitleDocMain" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:ObjectNumber" metadata="shelfmarksource" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Department" metadata="singleDigCollection" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Classifications/g:Classification/g:Classification" metadata="Classification" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Culture" metadata="PointOfOrigin" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Period" metadata="SubjectTemporal" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:ObjectNames/g:ObjectName/g:ObjectName" metadata="SubjectTitle" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Titles/g:Title[@DisplayOrder='1']/g:Title" metadata="TitleDocMain" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Titles/g:Title[@DisplayOrder!='1']/g:Title" metadata="OtherTitle" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Language" metadata="DocLanguage" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Dated" metadata="PublicationYear" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:BeginISODate" metadata="PublicationStart" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:EndISODate" metadata="PublicationEnd" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Medium" metadata="MaterialDescription" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Dimensions" metadata="Format" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Creditline" metadata="Copyright" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Description" metadata="Description" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Attributes" metadata="SubjectTopic" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Entstehungsort" metadata="PlaceOfPublication" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Umfang" metadata="FormatSourcePrint" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Edition" metadata="EditionStatement" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:SerieZyklus" metadata="TitleDocMainSeries" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Fundort" metadata="FindSpot" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:OnlineURL" metadata="CollectionLink" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Geographies/g:Geography/g:Geography" metadata="SubjectGeographic" xpathType="Element" />
+     
 
         <!-- possible attributes for corporate:
         - xpath: contains the xpath expression to the person element, absolute expression starting from the root element, required
