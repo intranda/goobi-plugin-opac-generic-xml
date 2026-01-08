@@ -4,6 +4,14 @@
         <username></username>
         <password></password>
     </authorization>
+    <!-- 
+    
+    <authorization type="NTLM">
+        <username>user</username>
+        <password>pw</password>
+    </authorization>    
+     -->
+    
     <docstructs>
         <!-- use the configured document type -->
         <!--
@@ -20,6 +28,9 @@
         <docstruct xmlName="Periodica" rulesetName="Volume" anchorName="Periodical" />
         -->
         
+        <doctumenttypequery xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Medium" xpathType="Element" />
+        <docstruct xmlName="Leinwand" rulesetName="Monograph" />
+                
         <documenttype isanchor="false">Object</documenttype>
         
     </docstructs>

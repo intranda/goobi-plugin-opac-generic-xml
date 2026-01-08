@@ -79,6 +79,11 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     private transient List<ConfigurationEntry> metadataList = null;
 
+    private transient List<ConfigurationEntry> personList = null;
+
+    private transient List<ConfigurationEntry> corporateList = null;
+    private transient List<ConfigurationEntry> groupList = null;
+
     private transient ConfigurationEntry documentTypeQuery;
     private Map<String, StringPair> docstructMap;
 
@@ -103,22 +108,22 @@ public class XmlOpacPlugin implements IOpacPlugin {
     private String gattung;
 
     @Override
-    public Fileformat search(String inSuchfeld, String inSuchbegriff, ConfigOpacCatalogue coc, Prefs prefs) throws Exception {
+    public Fileformat search(String searchField, String searchValue, ConfigOpacCatalogue coc, Prefs prefs) throws Exception {
         String myTitle = "";
         StringBuilder authors = new StringBuilder();
-        if (namespaces == null) {
-            loadConfiguration();
-        }
+        //        if (namespaces == null) {
+        loadConfiguration();
+        //        }
         Fileformat mm = null;
         String response = null;
-        if (StringUtils.isNotBlank(inSuchbegriff)) {
+        if (StringUtils.isNotBlank(searchValue)) {
             String url = coc.getAddress();
             if (!url.contains("{pv.id}")) {
                 Helper.setFehlerMeldung("address does not contain {pv.id} - sequence");
                 hit = 0;
                 return null;
             }
-            url = url.replace("{pv.id}", inSuchbegriff);
+            url = url.replace("{pv.id}", searchValue);
 
             if (url.startsWith("file://")) {
                 StorageProviderInterface spi = StorageProvider.getInstance();
@@ -187,6 +192,11 @@ public class XmlOpacPlugin implements IOpacPlugin {
             }
             hit = 1;
 
+            // get namespace definition from root element, if nothing else is configured
+            if (namespaces == null || namespaces.isEmpty()) {
+                namespaces = element.getNamespacesInScope();
+            }
+
             mm = new MetsMods(prefs);
             DigitalDocument digitalDocument = new DigitalDocument();
             mm.setDigitalDocument(digitalDocument);
@@ -194,7 +204,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
             DocStruct anchor = null;
             // get doc type from xml record
             if (documentTypeQuery != null) {
-                List<String> val = queryXmlFile(element, documentTypeQuery, inSuchbegriff);
+                List<String> val = queryXmlFile(element, documentTypeQuery, searchValue);
                 if (val.isEmpty()) {
                     hit = 0;
                     log.info("No document type detected in xml file");
@@ -230,7 +240,7 @@ public class XmlOpacPlugin implements IOpacPlugin {
             DocStruct physical = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
             digitalDocument.setPhysicalDocStruct(physical);
             for (ConfigurationEntry sp : metadataList) {
-                List<String> metadataValues = queryXmlFile(element, sp, inSuchbegriff);
+                List<String> metadataValues = queryXmlFile(element, sp, searchValue);
 
                 MetadataType mdt = prefs.getMetadataTypeByName(sp.getMetadataName());
                 if (mdt == null) {
@@ -282,6 +292,8 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 }
             }
         }
+        // TODO: if main element has no identifier, use search value
+
         this.atstsl = createAtstsl(myTitle, authors.toString());
         return mm;
     }
@@ -351,9 +363,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
             documentTypeQuery.setXpathType(doctypequery.getString("@xpathType", "Element"));
         }
 
-        fields = config.configurationsAt("mapping/element");
+        fields = config.configurationsAt("mapping/metadata");
         for (HierarchicalConfiguration sub : fields) {
-            String metadataName = sub.getString("@name");
+            String metadataName = sub.getString("@metadata");
             String xpathValue = sub.getString("@xpath");
             String level = sub.getString("@level", "topstruct");
             String xpathType = sub.getString("@xpathType", "Element");
@@ -463,5 +475,4 @@ public class XmlOpacPlugin implements IOpacPlugin {
     public String getGattung() {
         return gattung;
     }
-
 }
