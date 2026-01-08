@@ -16,7 +16,7 @@ import java.util.StringTokenizer;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
@@ -109,8 +109,6 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     @Override
     public Fileformat search(String searchField, String searchValue, ConfigOpacCatalogue coc, Prefs prefs) throws Exception {
-        String myTitle = "";
-        StringBuilder authors = new StringBuilder();
         //        if (namespaces == null) {
         loadConfiguration();
         //        }
@@ -185,6 +183,8 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 response = response.substring(1);
             }
 
+            System.out.println(response);
+
             Element element = getRecordFromResponse(response);
             if (element == null) {
                 hit = 0;
@@ -240,62 +240,77 @@ public class XmlOpacPlugin implements IOpacPlugin {
             DocStruct physical = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
             digitalDocument.setPhysicalDocStruct(physical);
             for (ConfigurationEntry sp : metadataList) {
-                List<String> metadataValues = queryXmlFile(element, sp, searchValue);
+                DocStruct ds = null;
+                switch (sp.getLevel().toLowerCase()) {
+                    case "physical":
+                        ds = physical;
+                        break;
+                    case "topstruct":
+                        ds = volume;
+                        break;
+                    case "anchor":
+                        ds = anchor;
+                }
+                extractMetadata(element, sp, searchValue, ds, prefs);
 
-                MetadataType mdt = prefs.getMetadataTypeByName(sp.getMetadataName());
-                if (mdt == null) {
-                    log.error("Cannot initialize metadata type " + sp.getMetadataName());
-                } else {
-                    for (String value : metadataValues) {
-                        try {
-                            if (mdt.getIsPerson()) {
-                                authors.append(value).append("; ");
-                                Person p = new Person(mdt);
-                                if (value.contains(",")) {
-                                    p.setLastname(value.substring(0, value.indexOf(",")).trim());
-                                    p.setFirstname(value.substring(value.indexOf(",") + 1).trim());
-                                } else {
-                                    p.setLastname(value);
-                                }
-                                if ("physical".equals(sp.getLevel())) {
-                                    // add it to phys
-                                    physical.addPerson(p);
-                                } else if ("topstruct".equals(sp.getLevel())) {
-                                    // add it to topstruct
-                                    volume.addPerson(p);
-                                } else if ("anchor".equals(sp.getLevel()) && anchor != null) {
-                                    // add it to anchor
-                                    anchor.addPerson(p);
-                                }
-                            } else {
-                                if ("TitleDocMain".equals(sp.getMetadataName())) {
-                                    myTitle = value.toLowerCase();
-                                }
-                                Metadata md = new Metadata(mdt);
-                                md.setValue(value);
-                                if ("physical".equals(sp.getLevel())) {
-                                    // add it to phys
-                                    physical.addMetadata(md);
-                                } else if ("topstruct".equals(sp.getLevel())) {
-                                    // add it to topstruct
-                                    volume.addMetadata(md);
-                                } else if ("anchor".equals(sp.getLevel()) && anchor != null) {
-                                    // add it to anchor
-                                    anchor.addMetadata(md);
-                                }
-                            }
-                        } catch (Exception e) {
-                            log.error(e);
-                        }
-
-                    }
+            }
+            // if main element has no identifier, use search value
+            boolean identifierExists = false;
+            for (Metadata md : volume.getAllMetadata()) {
+                if ("CatalogIDDigital".equals(md.getType().getName())) {
+                    identifierExists = true;
+                    break;
                 }
             }
-        }
-        // TODO: if main element has no identifier, use search value
+            if (!identifierExists) {
+                Metadata md = new Metadata(prefs.getMetadataTypeByName("CatalogIDDigital"));
+                md.setValue(searchValue);
+                volume.addMetadata(md);
+            }
 
-        this.atstsl = createAtstsl(myTitle, authors.toString());
+            // TODO generate ats from volume
+            //        this.atstsl = createAtstsl(myTitle, authors.toString());
+        }
         return mm;
+    }
+
+    private void extractMetadata(Element element, ConfigurationEntry entry, String id, DocStruct ds, Prefs prefs) {
+
+        MetadataType mdt = prefs.getMetadataTypeByName(entry.getMetadataName());
+        if (mdt == null) {
+            log.error("Cannot initialize metadata type " + entry.getMetadataName());
+            return;
+        } else {
+
+            List<String> metadataValues = queryXmlFile(element, entry, id);
+
+            for (String value : metadataValues) {
+                try {
+                    if (mdt.getIsPerson()) {
+                        Person p = new Person(mdt);
+                        if (value.contains(",")) {
+                            p.setLastname(value.substring(0, value.indexOf(",")).trim());
+                            p.setFirstname(value.substring(value.indexOf(",") + 1).trim());
+                        } else {
+                            p.setLastname(value);
+                        }
+
+                        ds.addPerson(p);
+
+                    } else {
+
+                        Metadata md = new Metadata(mdt);
+                        md.setValue(value);
+                        // add it to phys
+                        ds.addMetadata(md);
+                    }
+                } catch (Exception e) {
+                    log.error(e);
+                }
+
+            }
+        }
+
     }
 
     private List<String> queryXmlFile(Element element, ConfigurationEntry entry, String id) {
@@ -314,7 +329,6 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 String value = a.getValue();
                 metadataValues.add(value);
             }
-
         } else {
             List<String> data = xFactory.compile(xpath, Filters.fstring(), null, namespaces).evaluate(element);
             for (String value : data) {
