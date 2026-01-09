@@ -178,12 +178,12 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 return null;
             }
 
-            // remove BOM
+            // remove byte-order mark character
             if (response.startsWith("\uFEFF")) {
                 response = response.substring(1);
             }
 
-            System.out.println(response);
+            // System.out.println(response);
 
             Element element = getRecordFromResponse(response);
             if (element == null) {
@@ -281,36 +281,61 @@ public class XmlOpacPlugin implements IOpacPlugin {
             log.error("Cannot initialize metadata type " + entry.getMetadataName());
             return;
         } else {
-
-            List<String> metadataValues = queryXmlFile(element, entry, id);
-
-            for (String value : metadataValues) {
-                try {
-                    if (mdt.getIsPerson()) {
-                        Person p = new Person(mdt);
-                        if (value.contains(",")) {
-                            p.setLastname(value.substring(0, value.indexOf(",")).trim());
-                            p.setFirstname(value.substring(value.indexOf(",") + 1).trim());
-                        } else {
-                            p.setLastname(value);
-                        }
-
-                        ds.addPerson(p);
-
-                    } else {
-
-                        Metadata md = new Metadata(mdt);
-                        md.setValue(value);
-                        // add it to phys
-                        ds.addMetadata(md);
+            String xpath = entry.getXpath().replace("{pv.id}", id);
+            if ("Element".equalsIgnoreCase(entry.getXpathType())) {
+                List<Element> data = xFactory.compile(xpath, Filters.element(), null, namespaces).evaluate(element);
+                for (Element e : data) {
+                    String value = e.getValue();
+                    String authorityUri = "";
+                    if (StringUtils.isNotBlank(entry.getAuthorityDataXpath())) {
+                        authorityUri = xFactory.compile(entry.getAuthorityDataXpath(), Filters.fstring(), null, namespaces).evaluateFirst(e);
                     }
-                } catch (Exception e) {
-                    log.error(e);
-                }
+                    createMetadata(value, mdt, ds, authorityUri);
 
+                }
+            } else if ("Attribute".equalsIgnoreCase(entry.getXpathType())) {
+                List<Attribute> data = xFactory.compile(xpath, Filters.attribute(), null, namespaces).evaluate(element);
+                for (Attribute a : data) {
+                    String value = a.getValue();
+                    createMetadata(value, mdt, ds, null);
+                }
+            } else {
+                List<String> data = xFactory.compile(xpath, Filters.fstring(), null, namespaces).evaluate(element);
+                for (String value : data) {
+                    createMetadata(value, mdt, ds, null);
+                }
             }
         }
+    }
 
+    private void createMetadata(String value, MetadataType mdt, DocStruct ds, String authorityUri) {
+        try {
+            if (mdt.getIsPerson()) {
+                Person p = new Person(mdt);
+                if (value.contains(",")) {
+                    p.setLastname(value.substring(0, value.indexOf(",")).trim());
+                    p.setFirstname(value.substring(value.indexOf(",") + 1).trim());
+                } else {
+                    p.setLastname(value);
+                }
+                if (StringUtils.isNotBlank(authorityUri)) {
+                    p.setAuthorityFile("gnd", "", authorityUri);
+                }
+
+                ds.addPerson(p);
+
+            } else {
+
+                Metadata md = new Metadata(mdt);
+                md.setValue(value);
+                if (StringUtils.isNotBlank(authorityUri)) {
+                    md.setAuthorityFile("gnd", "", authorityUri);
+                }
+                ds.addMetadata(md);
+            }
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 
     private List<String> queryXmlFile(Element element, ConfigurationEntry entry, String id) {

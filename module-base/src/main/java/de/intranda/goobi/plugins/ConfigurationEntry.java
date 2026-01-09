@@ -13,4 +13,8 @@ public class ConfigurationEntry {
 
     private String xpathType = "Element"; // Element, Attribute, String
 
+    private String firstnameXpath;
+    private String lastnameXpath;
+    private String authorityDataXpath;
+
 }
