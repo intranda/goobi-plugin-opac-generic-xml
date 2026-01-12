@@ -13,10 +13,11 @@ Die vorliegende Dokumentation beschreibt die Installation, Konfiguration und den
 
 
 ## Installation
-Das Plugin besteht aus zwei Dateien:
+Das Plugin besteht aus drei Dateien:
 
 ```bash
 plugin_intranda_opac_xml-base.jar
+plugin_intranda_opac_xml-lib.jar
 plugin_intranda_opac_xml.xml
 ```
 
@@ -25,6 +26,13 @@ Die Datei `plugin_intranda_opac_xml-base.jar` enthält die Programmlogik und mus
 ```bash
 /opt/digiverso/goobi/plugins/opac/
 ```
+
+Die Datei `plugin_intranda_opac_xml-lib.jar` enthält die Funktionalität zum parsen der XML Daten und muss für den Nutzer `tomcat` lesbar in folgendes Verzeichnis installiert werden:
+
+```bash
+/opt/digiverso/goobi/lib/
+```
+
 
 Die Datei`plugin_intranda_opac_xml.xml` muss ebenfalls für den Nutzer `tomcat` lesbar sein und in folgendes Verzeichnis installiert werden:
 
@@ -102,21 +110,34 @@ Das Mapping der Inhalte des XML Records hin zu Goobi Metadaten geschieht in der 
         <docstruct xmlName="Periodica" rulesetName="Volume" anchorName="Periodical"/>
     </docstructs>
 
-    <mapping>
-            <element name="TitleDocMain" xpath="//ead:c[@level='file']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
-            <element name="TitleDocMainShort" xpath="//ead:c[@level='file']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
-            <element name="CatalogIDDigital" xpath="//ead:c[@level='file']/@id" level="topstruct" xpathType="Attribute"/>
-            <element name="CatalogIDSource" xpath="//ead:c[@level='file']/@id" level="topstruct" xpathType="Attribute"/>
-            <element name="PublicationRun" xpath="//ead:c[@level='file']/ead:did/ead:unitdate" level="topstruct" xpathType="Element"/>
-            <element name="PublicationStart" xpath="substring-before(//ead:c[@level='file']/ead:did/ead:unitdate/@normal\, '/')" level="topstruct" xpathType="String"/>
-            <element name="PublicationEnd" xpath="substring-after(//ead:c[@level='file']/ead:did/ead:unitdate/@normal\, '/')" level="topstruct" xpathType="String"/>
-            <element name="ShelfmarkOld" xpath="//ead:c[@level='file']/ead:did/ead:unitid[@type='Altsignatur']" level="topstruct" xpathType="Element"/>
-            <element name="shelfmarksource" xpath="concat('HU UA '\, //ead:c[@level='collection']/ead:did/ead:unitid\, ' Nr. '\, //ead:c[@level='file']/ead:did/ead:unitid)" level="topstruct" xpathType="String"/>
-            <element name="SizeSourcePrint" xpath="//ead:c[@level='file']/ead:did/ead:physdesc/ead:extent" level="topstruct" xpathType="Element"/>
-            <element name="OtherPerson" xpath="//ead:c[@level='file']/ead:odd/ead:p" level="topstruct" xpathType="Element"/>
-            <element name="Information" xpath="//ead:c[@level='file']/ead:did/ead:abstract[@type='Enthält']" level="topstruct" xpathType="Element"/>
-            <element name="Contains" xpath="//ead:c[@level='file']/ead:did/ead:abstract[@type='Darin']" level="topstruct" xpathType="Element"/>
-            <element name="Provenience" xpath="//ead:c[@level='file']/ead:did/ead:origination" level="topstruct" xpathType="Element"/>
+    <mapping>     
+            <metadata name="TitleDocMain" xpath="//ead:c[@level='file']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
+            <metadata name="TitleDocMainShort" xpath="//ead:c[@level='file']/ead:did/ead:unittitle" level="topstruct" xpathType="Element"/>
+            <metadata name="CatalogIDDigital" xpath="//ead:c[@level='file']/@id" level="topstruct" xpathType="Attribute"/>
+            <metadata name="CatalogIDSource" xpath="//ead:c[@level='file']/@id" level="topstruct" xpathType="Attribute"/>
+            <metadata name="PublicationRun" xpath="//ead:c[@level='file']/ead:did/ead:unitdate" level="topstruct" xpathType="Element"/>
+            <metadata name="PublicationStart" xpath="substring-before(//ead:c[@level='file']/ead:did/ead:unitdate/@normal\, '/')" level="topstruct" xpathType="String"/>
+            <metadata name="PublicationEnd" xpath="substring-after(//ead:c[@level='file']/ead:did/ead:unitdate/@normal\, '/')" level="topstruct" xpathType="String"/>
+            <metadata name="ShelfmarkOld" xpath="//ead:c[@level='file']/ead:did/ead:unitid[@type='Altsignatur']" level="topstruct" xpathType="Element"/>
+            <metadata name="shelfmarksource" xpath="concat('HU UA '\, //ead:c[@level='collection']/ead:did/ead:unitid\, ' Nr. '\, //ead:c[@level='file']/ead:did/ead:unitid)" level="topstruct" xpathType="String"/>
+            <metadata name="SizeSourcePrint" xpath="//ead:c[@level='file']/ead:did/ead:physdesc/ead:extent" level="topstruct" xpathType="Element"/>
+            <metadata name="OtherPerson" xpath="//ead:c[@level='file']/ead:odd/ead:p" level="topstruct" xpathType="Element"/>
+            <metadata name="Information" xpath="//ead:c[@level='file']/ead:did/ead:abstract[@type='Enthält']" level="topstruct" xpathType="Element"/>
+            <metadata name="Contains" xpath="//ead:c[@level='file']/ead:did/ead:abstract[@type='Darin']" level="topstruct" xpathType="Element"/>
+            <metadata name="Provenience" xpath="//ead:c[@level='file']/ead:did/ead:origination" level="topstruct" xpathType="Element"/>
+
+            <person name="Author" xpath="//ead:c/ead:controlaccess/ead:persname" firstname="./ead:part[@localtype='surname']" lastname="./ead:part[@localtype='givenname']" metadata="Author" authorityData="./@identifier" level="topstruct" xpathType="Element"/>
+
+            <corporate xpath="//ead:c/ead:controlaccess/ead:corpname/ead:part" metadata="CorporateOther" />
+
+
+            <group xpath="//ead:archdesc/ead:did/ead:repository" metadata="RepositoryGroup">
+                <metadata xpath="./@label" metadata="RepositoryTitle" xpathType="Attribute" />
+                <metadata xpath="./ead:address/ead:addressline" metadata="Address" xpathType="Element" />
+                <corporate xpath="./ead:corpname/ead:part" authorityData="./@identifier" metadata="CorporateOwner" />
+                <author xpath="./persname"  firstname="./ead:part[@localtype='surname']" lastname="./ead:part[@localtype='givenname']"  authorityData="./@identifier" metadata="Owner"/>
+            </group>
+
     </mapping>
 
 </config_plugin>
@@ -128,6 +149,10 @@ Im Bereich `<docstructs>` kann der zu verwendende Typ festgelegt werden. Dies ge
 
 Alternativ kann der Typ des Dokuments auch aus dem XML Record gelesen werden. Dann wird das Element `<doctumenttypequery>` verwendet, in dem ein XPath-Ausdruck definiert ist, der beschreibt, welches Feld verwendet werden soll. Zusätzlich gibt es eine Reihe von `<docstruct>` Elementen, die mögliche Feldinhalte beschreiben. Das Attribut `xmlName` enthält den Wert aus dem XML Dokument, in `rulesetName` steht der anzulegende Strukturtyp. Sofern es sich um ein mehrbändiges Werk handelt, muss zusätzlich noch `anchorName` mit dem Namen des übergeordneten Strukturtyps angegeben werden.
 
-Anschließend wird das Mapping für Personen und Metadaten im Bereich `<mapping>` konfiguriert. Hier gibt es eine Liste von `<element>` mit den Attributen `xpath`, `level`, `xpathType` und `name`. In `xpath` wird ein XPath Ausdruck konfiguriert, der beschreibt, in welchem Teil des XML Dokuments der Inhalt erwartet wird, in `name`wird der Name des Metadatums definiert, in das der Inhalt anschließend geschrieben werden soll. Mit der Angabe in `level` kann gesteuert werden, ob das Metadatum bei mehrbändigen Werken zum Datensatz des Anchors oder des Bandes geschrieben werden soll. In `xpathType` wird angegeben, welchen Typ das Ergebnis der XPath query hat. Dies kann ein `Element`, `Attribute` oder `String` sein.
+Anschließend wird das Mapping für Personen und Metadaten im Bereich `<mapping>` konfiguriert. Hier gibt es eine Liste von `<metadata>`, `<person>`, `<corporate>` und `<group>` mit den Attributen `xpath`, `level`, `xpathType`, `authorityData` und `name`. In `xpath` wird ein XPath Ausdruck konfiguriert, der beschreibt, in welchem Teil des XML Dokuments der Inhalt erwartet wird, in `name`wird der Name des Metadatums definiert, in das der Inhalt anschließend geschrieben werden soll. Mit der Angabe in `level` kann gesteuert werden, ob das Metadatum bei mehrbändigen Werken zum Datensatz des Anchors oder des Bandes geschrieben werden soll. In `xpathType` wird angegeben, welchen Typ das Ergebnis der XPath query hat. Dies kann ein `Element`, `Attribute` oder `String` sein. Das Attribut `authorityData` enthält einen Pfad, in dem Angaben zu Normdaten gesucht werden.
+
+Im Feld `<person>` gibt es zusätzlich noch die beiden Attribute `firstname` und `lastname`, in dem der XPath Ausdruck für die Angaben zu Vor- und Nachname konfiguriert wird.
+
+Das Element `<group>` enthält wiederum eine Liste von `<metadata>`, `<person>` und `<corporate>` Elementen. Bei `<group>` und `<person>` muss der Typ immer Element sein. Alle weiteren XPath Angaben beziehen sich dann auf dieses Element. 
 
 Im Fall von `String` können auch Manipulationen wie concat, substring genutzt werden. Die möglichen Funktionen sind hier beschrieben: [https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
