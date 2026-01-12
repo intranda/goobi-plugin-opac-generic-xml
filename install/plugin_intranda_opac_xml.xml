@@ -88,7 +88,7 @@
         - xpathType: describes the node type of the xpath expression, only element works here
         - level: topstruct, anchor, physical, only relevant for multi volume structures              
          -->
-        <corporate xpath="/Report/Data/Objects/Object/CreditLine" metadata="CorporateOwner" />
+        <corporate xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Creditline" metadata="CorporateOther" />
 
         <!-- possible attributes for person:
         - xpath: contains the xpath expression to the person element, absolute expression starting from the root element, required
@@ -101,9 +101,9 @@
         - name: relative xpath expression to the combined name in form 'lastname, firstname'
         Either name or firstname and lastname are required      
       -->
-        <person xpath="/Report/Data/Objects/Object/Constituents/Constituent[/Role='Künstler/in']" firstname="./Firstname" lastname="./Name" metadata="Artist" authorityData="./GND" />
-
-        <person xpath="/Report/Data/Objects/Object/Constituents/Constituent[/Role='Abbildung/Person']" name="./DisplayName" metadata="IllustratedPerson" authorityData="./GND" />
+      
+        <person xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Constituents/g:Constituent[g:Role='Abbildung/Person']" firstname="./g:FirstName" lastname="./g:LastName" metadata="Author" authorityData="./g:GND" />
+        <person xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Constituents/g:Constituent[g:Role='Künstler/in']" firstname="./g:FirstName" lastname="./g:LastName" metadata="Artist" authorityData="./g:GND" />
 
 
         <!-- possible attributes for groups:
@@ -114,16 +114,12 @@
       -->
 
         <!-- mapping to import AssociatedObject as a group -->
-        <group xpath="/Report/Data/Objects/Object/AssociatedObjects/AssociatedObject" metadata="LinkedObject">
-            <metadata xpath="./@ID" metadata="GroupID" xpathType="Attribute" />
-            <metadata xpath="./ObjectNumber" metadata="Label" xpathType="Element" />
-            <metadata xpath="./name()" metadata="GroupType" xpathType="String" />
+        <group xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:AssociatedObjects/g:AssociatedObject" metadata="Reference">
+            <metadata xpath="./@ID" metadata="RelationExternalIdentifier" xpathType="Attribute" />
+            <metadata xpath="./g:ObjectNumber" metadata="RelationLabel" xpathType="Element" />
+            <metadata xpath="./g:OnlineURL" metadata="RelationProcessID" xpathType="Element" />
         </group>
-        <!-- mapping to import MediaMaster into a group -->
-        <group xpath="/Report/Data/Objects/Object/Media/MediaMaster" metadata="LinkedObject">
-            <metadata xpath="./@ID" metadata="GroupID" xpathType="Attribute" />
-            <metadata xpath="./name()" metadata="GroupType" xpathType="String" />
-        </group>
+     
 
     </mapping>
 

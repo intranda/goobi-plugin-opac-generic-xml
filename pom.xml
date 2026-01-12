@@ -11,6 +11,7 @@
   <artifactId>plugin-opac-generic-xml</artifactId>
   <packaging>pom</packaging>
   <modules>
+    <module>module-lib</module>    
     <module>module-base</module>
   </modules>
   <repositories>

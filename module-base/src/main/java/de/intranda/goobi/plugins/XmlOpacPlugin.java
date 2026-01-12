@@ -6,16 +6,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
@@ -38,16 +32,11 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
-import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
-import org.jdom2.Namespace;
-import org.jdom2.filter.Filters;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.xpath.XPathFactory;
 
-import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.helper.Helper;
 import de.sub.goobi.helper.StorageProvider;
 import de.sub.goobi.helper.StorageProviderInterface;
@@ -64,8 +53,6 @@ import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.Fileformat;
 import ugh.dl.Metadata;
-import ugh.dl.MetadataType;
-import ugh.dl.Person;
 import ugh.dl.Prefs;
 import ugh.fileformats.mets.MetsMods;
 
@@ -75,27 +62,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
 
     private static final long serialVersionUID = -2018204723594173535L;
 
-    private List<Namespace> namespaces = null;
+    private XmlParser parser;
 
-    private transient List<ConfigurationEntry> metadataList = null;
-
-    private transient List<ConfigurationEntry> personList = null;
-
-    private transient List<ConfigurationEntry> corporateList = null;
-    private transient List<ConfigurationEntry> groupList = null;
-
-    private transient ConfigurationEntry documentTypeQuery;
-    private Map<String, StringPair> docstructMap;
-
-    private String documentType = null;
-    private String anchorType = null;
     protected String atstsl;
-
-    private String authenticationType = "none";
-    private String username;
-    private String password;
-
-    private transient XPathFactory xFactory = XPathFactory.instance();
 
     @Getter
     private PluginType type = PluginType.Opac;
@@ -137,9 +106,9 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 }
             } else {
                 CloseableHttpClient httpClient = null;
-                if ("NTLM".equalsIgnoreCase(authenticationType)) {
+                if ("NTLM".equalsIgnoreCase(parser.getAuthenticationType())) {
                     CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                    credsProvider.setCredentials(AuthScope.ANY, new NTCredentials(username, password, null, null));
+                    credsProvider.setCredentials(AuthScope.ANY, new NTCredentials(parser.getUsername(), parser.getPassword(), null, null));
                     Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider> create()
                             .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
                             .build();
@@ -158,10 +127,10 @@ public class XmlOpacPlugin implements IOpacPlugin {
                             .setDefaultCookieStore(new BasicCookieStore())
                             .setDefaultRequestConfig(config)
                             .build();
-                } else if ("BASIC".equalsIgnoreCase(authenticationType)) {
+                } else if ("BASIC".equalsIgnoreCase(parser.getAuthenticationType())) {
                     CredentialsProvider credsProvider = new BasicCredentialsProvider();
                     credsProvider.setCredentials(AuthScope.ANY,
-                            new UsernamePasswordCredentials(username, password));
+                            new UsernamePasswordCredentials(parser.getUsername(), parser.getPassword()));
                     httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
                 } else {
                     // default client
@@ -193,8 +162,8 @@ public class XmlOpacPlugin implements IOpacPlugin {
             hit = 1;
 
             // get namespace definition from root element, if nothing else is configured
-            if (namespaces == null || namespaces.isEmpty()) {
-                namespaces = element.getNamespacesInScope();
+            if (parser.getNamespaces() == null || parser.getNamespaces().isEmpty()) {
+                parser.setNamespaces(element.getNamespacesInScope());
             }
 
             mm = new MetsMods(prefs);
@@ -203,14 +172,14 @@ public class XmlOpacPlugin implements IOpacPlugin {
             DocStruct volume = null;
             DocStruct anchor = null;
             // get doc type from xml record
-            if (documentTypeQuery != null) {
-                List<String> val = queryXmlFile(element, documentTypeQuery, searchValue);
+            if (parser.getDocumentTypeQuery() != null) {
+                List<String> val = parser.queryXmlFile(element, parser.getDocumentTypeQuery(), searchValue);
                 if (val.isEmpty()) {
                     hit = 0;
                     log.info("No document type detected in xml file");
                     return null;
                 }
-                StringPair sp = docstructMap.get(val.get(0));
+                StringPair sp = parser.getDocstructMap().get(val.get(0));
                 if (sp == null) {
                     log.info("Unknown type found: " + val.get(0));
                     return null;
@@ -225,10 +194,10 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 }
                 // use configured doc type
             } else {
-                volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(documentType));
+                volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(parser.getDocumentType()));
 
-                if (anchorType != null) {
-                    anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(anchorType));
+                if (parser.getAnchorType() != null) {
+                    anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(parser.getAnchorType()));
                     anchor.addChild(volume);
                     digitalDocument.setLogicalDocStruct(anchor);
                 } else {
@@ -239,21 +208,27 @@ public class XmlOpacPlugin implements IOpacPlugin {
             gattung = volume.getType().getName();
             DocStruct physical = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName("BoundBook"));
             digitalDocument.setPhysicalDocStruct(physical);
-            for (ConfigurationEntry sp : metadataList) {
-                DocStruct ds = null;
-                switch (sp.getLevel().toLowerCase()) {
-                    case "physical":
-                        ds = physical;
-                        break;
-                    case "topstruct":
-                        ds = volume;
-                        break;
-                    case "anchor":
-                        ds = anchor;
-                }
-                extractMetadata(element, sp, searchValue, ds, prefs);
+            for (MetadataConfigurationEntry entry : parser.getMetadataList()) {
+                DocStruct ds = getConfiguredDocstruct(volume, anchor, physical, entry);
+                parser.extractMetadata(element, entry, searchValue, ds, prefs);
+            }
+
+            for (PersonConfigurationEntry entry : parser.getPersonList()) {
+                DocStruct ds = getConfiguredDocstruct(volume, anchor, physical, entry);
+                parser.extractPerson(element, entry, searchValue, ds, prefs);
+            }
+
+            for (MetadataConfigurationEntry entry : parser.getCorporateList()) {
+                DocStruct ds = getConfiguredDocstruct(volume, anchor, physical, entry);
+                parser.extractMetadata(element, entry, searchValue, ds, prefs);
+            }
+
+            for (GroupConfigurationEntry entry : parser.getGroupList()) {
+                DocStruct ds = getConfiguredDocstruct(volume, anchor, physical, entry);
+                parser.extractGroup(element, entry, searchValue, ds, prefs);
 
             }
+
             // if main element has no identifier, use search value
             boolean identifierExists = false;
             for (Metadata md : volume.getAllMetadata()) {
@@ -268,157 +243,28 @@ public class XmlOpacPlugin implements IOpacPlugin {
                 volume.addMetadata(md);
             }
 
-            // TODO generate ats from volume
-            //        this.atstsl = createAtstsl(myTitle, authors.toString());
         }
         return mm;
     }
 
-    private void extractMetadata(Element element, ConfigurationEntry entry, String id, DocStruct ds, Prefs prefs) {
-
-        MetadataType mdt = prefs.getMetadataTypeByName(entry.getMetadataName());
-        if (mdt == null) {
-            log.error("Cannot initialize metadata type " + entry.getMetadataName());
-            return;
-        } else {
-            String xpath = entry.getXpath().replace("{pv.id}", id);
-            if ("Element".equalsIgnoreCase(entry.getXpathType())) {
-                List<Element> data = xFactory.compile(xpath, Filters.element(), null, namespaces).evaluate(element);
-                for (Element e : data) {
-                    String value = e.getValue();
-                    String authorityUri = "";
-                    if (StringUtils.isNotBlank(entry.getAuthorityDataXpath())) {
-                        authorityUri = xFactory.compile(entry.getAuthorityDataXpath(), Filters.fstring(), null, namespaces).evaluateFirst(e);
-                    }
-                    createMetadata(value, mdt, ds, authorityUri);
-
-                }
-            } else if ("Attribute".equalsIgnoreCase(entry.getXpathType())) {
-                List<Attribute> data = xFactory.compile(xpath, Filters.attribute(), null, namespaces).evaluate(element);
-                for (Attribute a : data) {
-                    String value = a.getValue();
-                    createMetadata(value, mdt, ds, null);
-                }
-            } else {
-                List<String> data = xFactory.compile(xpath, Filters.fstring(), null, namespaces).evaluate(element);
-                for (String value : data) {
-                    createMetadata(value, mdt, ds, null);
-                }
-            }
+    public DocStruct getConfiguredDocstruct(DocStruct volume, DocStruct anchor, DocStruct physical, MetadataConfigurationEntry sp) {
+        DocStruct ds = null;
+        switch (sp.getLevel().toLowerCase()) {
+            case "physical":
+                ds = physical;
+                break;
+            case "topstruct":
+                ds = volume;
+                break;
+            case "anchor":
+                ds = anchor;
         }
-    }
-
-    private void createMetadata(String value, MetadataType mdt, DocStruct ds, String authorityUri) {
-        try {
-            if (mdt.getIsPerson()) {
-                Person p = new Person(mdt);
-                if (value.contains(",")) {
-                    p.setLastname(value.substring(0, value.indexOf(",")).trim());
-                    p.setFirstname(value.substring(value.indexOf(",") + 1).trim());
-                } else {
-                    p.setLastname(value);
-                }
-                if (StringUtils.isNotBlank(authorityUri)) {
-                    p.setAuthorityFile("gnd", "", authorityUri);
-                }
-
-                ds.addPerson(p);
-
-            } else {
-
-                Metadata md = new Metadata(mdt);
-                md.setValue(value);
-                if (StringUtils.isNotBlank(authorityUri)) {
-                    md.setAuthorityFile("gnd", "", authorityUri);
-                }
-                ds.addMetadata(md);
-            }
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
-
-    private List<String> queryXmlFile(Element element, ConfigurationEntry entry, String id) {
-        List<String> metadataValues = new ArrayList<>();
-
-        String xpath = entry.getXpath().replace("{pv.id}", id);
-        if ("Element".equalsIgnoreCase(entry.getXpathType())) {
-            List<Element> data = xFactory.compile(xpath, Filters.element(), null, namespaces).evaluate(element);
-            for (Element e : data) {
-                String value = e.getValue();
-                metadataValues.add(value);
-            }
-        } else if ("Attribute".equalsIgnoreCase(entry.getXpathType())) {
-            List<Attribute> data = xFactory.compile(xpath, Filters.attribute(), null, namespaces).evaluate(element);
-            for (Attribute a : data) {
-                String value = a.getValue();
-                metadataValues.add(value);
-            }
-        } else {
-            List<String> data = xFactory.compile(xpath, Filters.fstring(), null, namespaces).evaluate(element);
-            for (String value : data) {
-                metadataValues.add(value);
-            }
-        }
-        return metadataValues;
+        return ds;
     }
 
     private void loadConfiguration() {
-
-        docstructMap = new HashMap<>();
-        namespaces = new ArrayList<>();
-        metadataList = new ArrayList<>();
-        XMLConfiguration config = ConfigPlugins.getPluginConfig(title);
-        config.setExpressionEngine(new XPathExpressionEngine());
-        List<HierarchicalConfiguration> fields = config.configurationsAt("/namespaces/namespace");
-        for (HierarchicalConfiguration sub : fields) {
-            Namespace namespace;
-            String prefix = sub.getString("@prefix", null);
-            if (StringUtils.isNotBlank(prefix)) {
-                namespace = Namespace.getNamespace(prefix, sub.getString("@uri"));
-            } else {
-                namespace = Namespace.getNamespace(sub.getString("@uri"));
-            }
-            namespaces.add(namespace);
-        }
-
-        documentType = config.getString("/docstructs/documenttype[@isanchor='false']", null);
-        anchorType = config.getString("/docstructs/documenttype[@isanchor='true']", null);
-
-        List<HierarchicalConfiguration> docstructList = config.configurationsAt("/docstructs/docstruct");
-        if (docstructList != null) {
-            for (HierarchicalConfiguration docstruct : docstructList) {
-                String xmlName = docstruct.getString("@xmlName");
-                String rulesetName = docstruct.getString("@rulesetName");
-                String anchorName = docstruct.getString("@anchorName", null);
-                docstructMap.put(xmlName, new StringPair(rulesetName, anchorName));
-            }
-        }
-        List<HierarchicalConfiguration> doctypequeries = config.configurationsAt("/docstructs/doctumenttypequery");
-        if (!doctypequeries.isEmpty()) {
-            HierarchicalConfiguration doctypequery = doctypequeries.get(0);
-            documentTypeQuery = new ConfigurationEntry();
-            documentTypeQuery.setXpath(doctypequery.getString("@xpath"));
-            documentTypeQuery.setXpathType(doctypequery.getString("@xpathType", "Element"));
-        }
-
-        fields = config.configurationsAt("mapping/metadata");
-        for (HierarchicalConfiguration sub : fields) {
-            String metadataName = sub.getString("@metadata");
-            String xpathValue = sub.getString("@xpath");
-            String level = sub.getString("@level", "topstruct");
-            String xpathType = sub.getString("@xpathType", "Element");
-            ConfigurationEntry entry = new ConfigurationEntry();
-            entry.setLevel(level);
-            entry.setMetadataName(metadataName);
-            entry.setXpath(xpathValue);
-            entry.setXpathType(xpathType);
-            metadataList.add(entry);
-        }
-
-        authenticationType = config.getString("/authorization/@type", "none");
-        username = config.getString("/authorization/username");
-        password = config.getString("/authorization/password");
+        parser = new XmlParser();
+        parser.loadConfiguration(title);
     }
 
     private Element getRecordFromResponse(String response) {
