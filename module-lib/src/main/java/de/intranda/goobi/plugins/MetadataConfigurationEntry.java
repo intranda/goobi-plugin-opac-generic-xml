@@ -15,4 +15,8 @@ public class MetadataConfigurationEntry {
 
     private String authorityDataXpath;
 
+    // has no relevance in opac plugin, but is used in xml -> archive workflow plugin
+    private String archiveFieldName;
+    private String archiveFieldLevel;
+
 }

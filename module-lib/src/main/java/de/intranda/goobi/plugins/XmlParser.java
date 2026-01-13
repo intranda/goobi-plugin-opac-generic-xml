@@ -56,6 +56,9 @@ public class XmlParser {
 
     private transient XPathFactory xFactory = XPathFactory.instance();
 
+    private String splitRecordXPath;
+    private String archiveIdentifierField;
+
     public void loadConfiguration(String configName) {
 
         docstructMap = new HashMap<>();
@@ -123,7 +126,9 @@ public class XmlParser {
             entry.setMetadataName(sub.getString("@metadata"));
             entry.setXpath(sub.getString("@xpath"));
             entry.setLevel(sub.getString("@level", "topstruct"));
-
+            entry.setAuthorityDataXpath(sub.getString("@authorityData"));
+            entry.setArchiveFieldLevel(sub.getString("@archiveField"));
+            entry.setArchiveFieldName(sub.getString("@archiveLevel"));
             for (HierarchicalConfiguration hc : sub.configurationsAt("metadata")) {
                 MetadataConfigurationEntry mce = getMetadataConfiguration(hc);
                 entry.getMetadataList().add(mce);
@@ -144,6 +149,8 @@ public class XmlParser {
         username = config.getString("/authorization/username");
         password = config.getString("/authorization/password");
 
+        splitRecordXPath = config.getString("/archiveImport/identifierField");
+        archiveIdentifierField = config.getString("/archiveImport/splitRecordXPath");
     }
 
     public DocStruct getConfiguredDocstruct(DocStruct volume, DocStruct anchor, DocStruct physical, MetadataConfigurationEntry sp) {
@@ -162,6 +169,10 @@ public class XmlParser {
     }
 
     public void extractGroup(Element element, GroupConfigurationEntry entry, String searchValue, DocStruct ds, Prefs prefs) {
+        if (StringUtils.isBlank(entry.getMetadataName())) {
+            // abort if no metadata field is configured
+            return;
+        }
         MetadataGroupType type = prefs.getMetadataGroupTypeByName(entry.getMetadataName());
         if (type == null) {
             log.error("Cannot initialize metadata type " + entry.getMetadataName());
@@ -197,6 +208,10 @@ public class XmlParser {
     }
 
     public void extractPerson(Element element, PersonConfigurationEntry entry, String id, HoldingElement ds, Prefs prefs) {
+        if (StringUtils.isBlank(entry.getMetadataName())) {
+            // abort if no metadata field is configured
+            return;
+        }
         MetadataType mdt = prefs.getMetadataTypeByName(entry.getMetadataName());
         if (mdt == null) {
             log.error("Cannot initialize metadata type " + entry.getMetadataName());
@@ -239,7 +254,10 @@ public class XmlParser {
     }
 
     public void extractMetadata(Element element, MetadataConfigurationEntry entry, String id, HoldingElement ds, Prefs prefs) {
-
+        if (StringUtils.isBlank(entry.getMetadataName())) {
+            // abort if no metadata field is configured
+            return;
+        }
         MetadataType mdt = prefs.getMetadataTypeByName(entry.getMetadataName());
         if (mdt == null) {
             log.error("Cannot initialize metadata type " + entry.getMetadataName());
@@ -342,6 +360,9 @@ public class XmlParser {
         entry.setXpath(sub.getString("@xpath"));
         entry.setLevel(sub.getString("@level", "topstruct"));
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
+        entry.setAuthorityDataXpath(sub.getString("@authorityData"));
+        entry.setArchiveFieldLevel(sub.getString("@archiveField"));
+        entry.setArchiveFieldName(sub.getString("@archiveLevel"));
         return entry;
     }
 
@@ -353,6 +374,9 @@ public class XmlParser {
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
         entry.setFirstnameXpath(sub.getString("@firstname"));
         entry.setLastnameXpath(sub.getString("@lastname"));
+        entry.setAuthorityDataXpath(sub.getString("@authorityData"));
+        entry.setArchiveFieldLevel(sub.getString("@archiveField"));
+        entry.setArchiveFieldName(sub.getString("@archiveLevel"));
         return entry;
     }
 
@@ -367,6 +391,8 @@ public class XmlParser {
         entry.setXpath(xpathValue);
         entry.setXpathType(xpathType);
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
+        entry.setArchiveFieldLevel(sub.getString("@archiveField"));
+        entry.setArchiveFieldName(sub.getString("@archiveLevel"));
         return entry;
     }
 
