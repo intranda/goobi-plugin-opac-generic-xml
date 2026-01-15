@@ -56,8 +56,14 @@ public class XmlParser {
 
     private transient XPathFactory xFactory = XPathFactory.instance();
 
+    // used for TMS node import
     private String splitRecordXPath;
+    private String splitRecordXPathType;
     private String archiveIdentifierField;
+
+    private String hierarchyXPath;
+    private String hierarchyXPathType;
+    private String hierarchySplitChar;
 
     public void loadConfiguration(String configName) {
 
@@ -127,8 +133,8 @@ public class XmlParser {
             entry.setXpath(sub.getString("@xpath"));
             entry.setLevel(sub.getString("@level", "topstruct"));
             entry.setAuthorityDataXpath(sub.getString("@authorityData"));
-            entry.setArchiveFieldLevel(sub.getString("@archiveField"));
-            entry.setArchiveFieldName(sub.getString("@archiveLevel"));
+            entry.setArchiveFieldLevel(sub.getString("@archiveLevel"));
+            entry.setArchiveFieldName(sub.getString("@archiveField"));
             for (HierarchicalConfiguration hc : sub.configurationsAt("metadata")) {
                 MetadataConfigurationEntry mce = getMetadataConfiguration(hc);
                 entry.getMetadataList().add(mce);
@@ -149,8 +155,13 @@ public class XmlParser {
         username = config.getString("/authorization/username");
         password = config.getString("/authorization/password");
 
-        splitRecordXPath = config.getString("/archiveImport/identifierField");
-        archiveIdentifierField = config.getString("/archiveImport/splitRecordXPath");
+        splitRecordXPath = config.getString("/archiveImport/splitRecordXPath/@xpath");
+        splitRecordXPathType = config.getString("/archiveImport/splitRecordXPath/@xpathType", "Element");
+        archiveIdentifierField = config.getString("/archiveImport/identifierField");
+
+        hierarchyXPath = config.getString("/archiveImport/hierarchyXPath/@xpath");
+        hierarchyXPathType = config.getString("/archiveImport/hierarchyXPath/@xpathType", "Element");
+        hierarchySplitChar = config.getString("/archiveImport/hierarchyXPath/@split", "_");
     }
 
     public DocStruct getConfiguredDocstruct(DocStruct volume, DocStruct anchor, DocStruct physical, MetadataConfigurationEntry sp) {
@@ -361,8 +372,8 @@ public class XmlParser {
         entry.setLevel(sub.getString("@level", "topstruct"));
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
-        entry.setArchiveFieldLevel(sub.getString("@archiveField"));
-        entry.setArchiveFieldName(sub.getString("@archiveLevel"));
+        entry.setArchiveFieldLevel(sub.getString("@archiveLevel"));
+        entry.setArchiveFieldName(sub.getString("@archiveField"));
         return entry;
     }
 
@@ -375,8 +386,8 @@ public class XmlParser {
         entry.setFirstnameXpath(sub.getString("@firstname"));
         entry.setLastnameXpath(sub.getString("@lastname"));
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
-        entry.setArchiveFieldLevel(sub.getString("@archiveField"));
-        entry.setArchiveFieldName(sub.getString("@archiveLevel"));
+        entry.setArchiveFieldLevel(sub.getString("@archiveLevel"));
+        entry.setArchiveFieldName(sub.getString("@archiveField"));
         return entry;
     }
 
@@ -391,8 +402,8 @@ public class XmlParser {
         entry.setXpath(xpathValue);
         entry.setXpathType(xpathType);
         entry.setAuthorityDataXpath(sub.getString("@authorityData"));
-        entry.setArchiveFieldLevel(sub.getString("@archiveField"));
-        entry.setArchiveFieldName(sub.getString("@archiveLevel"));
+        entry.setArchiveFieldLevel(sub.getString("@archiveLevel"));
+        entry.setArchiveFieldName(sub.getString("@archiveField"));
         return entry;
     }
 
