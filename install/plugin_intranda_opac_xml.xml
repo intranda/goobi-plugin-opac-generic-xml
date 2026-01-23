@@ -123,4 +123,15 @@
 
     </mapping>
 
+
+
+    <!-- use in combination with the intranda_workflow_xml_import to import data into the archive -->
+    <archiveImport>
+        <identifierField>recordid</identifierField>
+        <splitRecordXPath xpath="/g:Report/g:Data/g:Objects/g:Object/@ID" xpathType="Attribute" />
+        <hierarchyXPath xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:ObjectNumber" xpathType="Element" split="_" />
+        <processTemplateName>TMS-KHM </processTemplateName>
+    </archiveImport>
+
+
 </config_plugin>

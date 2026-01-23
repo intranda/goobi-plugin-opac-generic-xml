@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +28,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.goobi.production.cli.helper.StringPair;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.plugin.interfaces.IOpacPlugin;
 import org.jdom2.Document;
@@ -167,42 +165,15 @@ public class XmlOpacPlugin implements IOpacPlugin {
             }
 
             mm = new MetsMods(prefs);
-            DigitalDocument digitalDocument = new DigitalDocument();
-            mm.setDigitalDocument(digitalDocument);
-            DocStruct volume = null;
-            DocStruct anchor = null;
-            // get doc type from xml record
-            if (parser.getDocumentTypeQuery() != null) {
-                List<String> val = parser.queryXmlFile(element, parser.getDocumentTypeQuery(), searchValue);
-                if (val.isEmpty()) {
-                    hit = 0;
-                    log.info("No document type detected in xml file");
-                    return null;
-                }
-                StringPair sp = parser.getDocstructMap().get(val.get(0));
-                if (sp == null) {
-                    log.info("Unknown type found: " + val.get(0));
-                    return null;
-                }
-                volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(sp.getOne()));
-                if (sp.getTwo() != null) {
-                    anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(sp.getTwo()));
-                    anchor.addChild(volume);
-                    digitalDocument.setLogicalDocStruct(anchor);
-                } else {
-                    digitalDocument.setLogicalDocStruct(volume);
-                }
-                // use configured doc type
-            } else {
-                volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(parser.getDocumentType()));
+            DigitalDocument digitalDocument = parser.createDocument(prefs, element, searchValue);
 
-                if (parser.getAnchorType() != null) {
-                    anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(parser.getAnchorType()));
-                    anchor.addChild(volume);
-                    digitalDocument.setLogicalDocStruct(anchor);
-                } else {
-                    digitalDocument.setLogicalDocStruct(volume);
-                }
+            mm.setDigitalDocument(digitalDocument);
+
+            DocStruct anchor = null;
+            DocStruct volume = digitalDocument.getLogicalDocStruct();
+            if (volume.getType().isAnchor()) {
+                anchor = volume;
+                volume = volume.getAllChildren().get(0);
             }
 
             gattung = volume.getType().getName();

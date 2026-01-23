@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import ugh.dl.Corporate;
+import ugh.dl.DigitalDocument;
 import ugh.dl.DocStruct;
 import ugh.dl.HoldingElement;
 import ugh.dl.Metadata;
@@ -30,6 +31,7 @@ import ugh.dl.MetadataType;
 import ugh.dl.Person;
 import ugh.dl.Prefs;
 import ugh.exceptions.MetadataTypeNotAllowedException;
+import ugh.exceptions.UGHException;
 
 @Log4j2
 @Getter
@@ -64,6 +66,8 @@ public class XmlParser {
     private String hierarchyXPath;
     private String hierarchyXPathType;
     private String hierarchySplitChar;
+
+    private String processTemplateName;
 
     public void loadConfiguration(String configName) {
 
@@ -162,6 +166,7 @@ public class XmlParser {
         hierarchyXPath = config.getString("/archiveImport/hierarchyXPath/@xpath");
         hierarchyXPathType = config.getString("/archiveImport/hierarchyXPath/@xpathType", "Element");
         hierarchySplitChar = config.getString("/archiveImport/hierarchyXPath/@split", "_");
+        processTemplateName = config.getString("/archiveImport/processTemplateName", "");
     }
 
     public DocStruct getConfiguredDocstruct(DocStruct volume, DocStruct anchor, DocStruct physical, MetadataConfigurationEntry sp) {
@@ -405,6 +410,45 @@ public class XmlParser {
         entry.setArchiveFieldLevel(sub.getString("@archiveLevel"));
         entry.setArchiveFieldName(sub.getString("@archiveField"));
         return entry;
+    }
+
+    public DigitalDocument createDocument(Prefs prefs, Element element, String searchValue) throws UGHException {
+        DigitalDocument digitalDocument = new DigitalDocument();
+        DocStruct volume = null;
+        DocStruct anchor = null;
+        if (getDocumentTypeQuery() != null) {
+            List<String> val = queryXmlFile(element, getDocumentTypeQuery(), searchValue);
+            if (val.isEmpty()) {
+
+                return null;
+            }
+            StringPair sp = getDocstructMap().get(val.get(0));
+            if (sp == null) {
+                log.info("Unknown type found: " + val.get(0));
+                return null;
+            }
+            volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(sp.getOne()));
+            if (sp.getTwo() != null) {
+                anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(sp.getTwo()));
+                anchor.addChild(volume);
+                digitalDocument.setLogicalDocStruct(anchor);
+            } else {
+                digitalDocument.setLogicalDocStruct(volume);
+            }
+            // use configured doc type
+        } else {
+            volume = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(getDocumentType()));
+
+            if (getAnchorType() != null) {
+                anchor = digitalDocument.createDocStruct(prefs.getDocStrctTypeByName(getAnchorType()));
+                anchor.addChild(volume);
+                digitalDocument.setLogicalDocStruct(anchor);
+            } else {
+                digitalDocument.setLogicalDocStruct(volume);
+            }
+        }
+
+        return digitalDocument;
     }
 
 }
