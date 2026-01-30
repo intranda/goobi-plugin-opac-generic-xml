@@ -4,17 +4,15 @@
   <parent>
     <groupId>io.goobi.workflow.plugin</groupId>
     <artifactId>plugin-opac-generic-xml</artifactId>
-    <version>25.12-SNAPSHOT</version>
+    <version>26.01</version>
   </parent>
   <artifactId>plugin-opac-generic-xml-base</artifactId>
   <packaging>jar</packaging>
-  
   <dependencies>
     <dependency>
       <groupId>io.goobi.workflow.plugin</groupId>
       <artifactId>plugin-opac-generic-xml-lib</artifactId>
-      <version>25.12-SNAPSHOT</version>
-     </dependency>
+      <version>26.01</version>
+    </dependency>
   </dependencies>
-  
 </project>
