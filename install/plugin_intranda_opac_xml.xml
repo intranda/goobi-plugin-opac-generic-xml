@@ -1,56 +1,137 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <config_plugin>
-	<!-- define the list of namespaces. It is used to read the document and run xpath queries 
-	<namespaces>
-		<namespace prefix="ead" uri="urn:isbn:1-931666-22-9" />
-		<namespace prefix="oai" uri="http://www.openarchives.org/OAI/2.0/" />
-	</namespaces>-->
-
-	<docstructs>
-		<!-- use the configured document type -->
-		<!-- or detect the document type in xml record -->
-	<!--
-		<documenttype isanchor="false">Record</documenttype>
-		<documenttype isanchor="true">VolumeRun</documenttype>
-	-->
-
-		<!-- run the query and compare the result with the list -->
-		<doctumenttypequery xpath="/soutron/catalogs_view/ct/cat/rt/@name"  xpathType="Attribute" />
-		<docstruct xmlName="Book" rulesetName="Monograph"/>
-		<docstruct xmlName="Photo" rulesetName="Picture"/>
-		<docstruct xmlName="File" rulesetName="File"/>
-		<docstruct xmlName="Periodica" rulesetName="Volume" anchorName="Periodical"/>
-	</docstructs>
-
-
-
-	<mapping>
-        <element xpath="/soutron/catalogs_view/ct/@name" name="singleDigCollection" level="topstruct" xpathType="Attribute" />
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Title']/vs/v[@seq='1']" name="TitleDocMain" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='CID']/vs/v" name="CatalogIDDigital" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='ISBN']/vs/v" name="ISBN" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Notes']/vs/v" name="Note" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Publisher']/vs/v" name="PublisherName" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Language']/vs/v" name="DocLanguage" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Subjects']/vs/v" name="Subject" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Abstract']/vs/v" name="Abstract" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Sort Year']/vs/v" name="CurrentNoSorting" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Date of Publication']/vs/v" name="PublicationYear" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Coverage Dates']/vs/v" name="CoverageDates" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Date notes']/vs/v" name="DateNotes" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Place of Publication']/vs/v" name="PlaceOfPublication" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Accompanying Material']/vs/v" name="Description" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Geographical Name']/vs/v" name="SubjectGeographic" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Duration']/vs/v" name="Note" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Reference Number']/vs/v" name="shelfmarksource" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Scope/Content']/vs/v" name="Abstract" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Extent']/vs/v" name="physicalDescriptionExtent" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Credit Line']/vs/v" name="CreditLine" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Personal Name Keyword']/vs/v" name="SubjectPerson" level="topstruct" xpathType="Element"/>
-        <element xpath="/soutron/catalogs_view/ct/cat/fs/f[@name='Institutional Keyword']/vs/v" name="SubjectCorporate" level="topstruct" xpathType="Element" />
+    <!-- authorization configuration, username + password, or bearer token, authentication type -->
+    <authorization type="none">
+        <username></username>
+        <password></password>
+    </authorization>
+    <!-- 
+    
+    <authorization type="NTLM">
+        <username>user</username>
+        <password>pw</password>
+    </authorization>    
+     -->
+    
+    <docstructs>
+        <!-- use the configured document type -->
+        <!--
+        <documenttype isanchor="false">Volume</documenttype>
+        <documenttype isanchor="true">MultiVolumeWork</documenttype>
+        -->
+        <!-- or detect the document type in xml record -->
+        <!-- run the query and compare the result with the list -->
+        <!--
+        <doctumenttypequery xpath="/soutron/catalogs_view/ct/cat/rt/@name" xpathType="Attribute" />
+        <docstruct xmlName="Book" rulesetName="Monograph" />
+        <docstruct xmlName="Photo" rulesetName="Picture" />
+        <docstruct xmlName="File" rulesetName="File" />
+        <docstruct xmlName="Periodica" rulesetName="Volume" anchorName="Periodical" />
+        -->
+        
+        <doctumenttypequery xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Medium" xpathType="Element" />
+        <docstruct xmlName="Leinwand" rulesetName="Monograph" />
+                
+        <documenttype isanchor="false">Object</documenttype>
+        
+    </docstructs>
 
 
+    <!-- define the list of namespaces. It is used to read the document and run xpath queries. Leave it empty, if the xml document works without namespaces -->
+    <namespaces>
+        <!--
+        <namespace prefix="sample" uri="http://example.org/ns" />
+        -->
+        <namespace  prefix="g" uri="Goobi" />
 
-	</mapping>
+    </namespaces>
+
+    <!-- metadata mapping -->
+    <mapping>
+        <!-- possible attributes for metadata:
+        - xpath: contains the xpath expression to the value, absolute expression starting from the root element, required
+        - metadata: internal name of the metadata entry, required
+        - authorityData: xpath expression to authority data, relative expression, based on the element found with the xpath expression, optional
+        - xpathType: describes the node type of the xpath expression, can be Attribute, Element, String. Optional, default is Element
+        - level: topstruct, anchor, physical, only relevant for multi volume structures. 
+      -->
+
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:ObjectNumber" metadata="shelfmarksource" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Department" metadata="singleDigCollection" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Classifications/g:Classification/g:Classification" metadata="Classification" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Culture" metadata="PointOfOrigin" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Period" metadata="SubjectTemporal" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:ObjectNames/g:ObjectName/g:ObjectName" metadata="SubjectTitle" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Titles/g:Title[@DisplayOrder='1']/g:Title" metadata="TitleDocMain" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Titles/g:Title[@DisplayOrder!='1']/g:Title" metadata="OtherTitle" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Language" metadata="DocLanguage" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Dated" metadata="PublicationYear" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:BeginISODate" metadata="PublicationStart" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:EndISODate" metadata="PublicationEnd" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Medium" metadata="MaterialDescription" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Dimensions" metadata="Format" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Creditline" metadata="Copyright" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Description" metadata="Description" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Attributes" metadata="SubjectTopic" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Entstehungsort" metadata="PlaceOfPublication" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Umfang" metadata="FormatSourcePrint" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Edition" metadata="EditionStatement" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:SerieZyklus" metadata="TitleDocMainSeries" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Fundort" metadata="FindSpot" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:OnlineURL" metadata="CollectionLink" xpathType="Element" />
+        <metadata xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Geographies/g:Geography/g:Geography" metadata="SubjectGeographic" xpathType="Element" />
+     
+
+        <!-- possible attributes for corporate:
+        - xpath: contains the xpath expression to the person element, absolute expression starting from the root element, required
+        - metadata: internal name of the role, required
+        - authorityData: xpath expression to authority data, relative expression, based on the element found with the xpath expression, optional  
+        - xpathType: describes the node type of the xpath expression, only element works here
+        - level: topstruct, anchor, physical, only relevant for multi volume structures              
+         -->
+        <corporate xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Creditline" metadata="CorporateOther" />
+
+        <!-- possible attributes for person:
+        - xpath: contains the xpath expression to the person element, absolute expression starting from the root element, required
+        - metadata: internal name of the role, required
+        - authorityData: xpath expression to authority data, relative expression, based on the element found with the xpath expression, optional
+        - xpathType: describes the node type of the xpath expression, only element works here
+        - level: topstruct, anchor, physical, only relevant for multi volume structures
+        - firstname: relative xpath expression to to firstname
+        - lastname: relative xpath expression to the lastname
+        - name: relative xpath expression to the combined name in form 'lastname, firstname'
+        Either name or firstname and lastname are required      
+      -->
+      
+        <person xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Constituents/g:Constituent[g:Role='Abbildung/Person']" firstname="./g:FirstName" lastname="./g:LastName" metadata="Author" authorityData="./g:GND" />
+        <person xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:Constituents/g:Constituent[g:Role='Künstler/in']" firstname="./g:FirstName" lastname="./g:LastName" metadata="Artist" authorityData="./g:GND" />
+
+
+        <!-- possible attributes for groups:
+        - xpath: contains the xpath expression to the group element, absolute expression starting from the root element, required
+        - metadata: internal name of the metatada group, required
+        - level: topstruct, anchor, physical, only relevant for multi volume structures
+         Can contain a list of metadata, person, corporate elements with the same options as above. Only difference: xpath expression are relative to the group element, not absolute   
+      -->
+
+        <!-- mapping to import AssociatedObject as a group -->
+        <group xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:AssociatedObjects/g:AssociatedObject" metadata="Reference">
+            <metadata xpath="./@ID" metadata="RelationExternalIdentifier" xpathType="Attribute" />
+            <metadata xpath="./g:ObjectNumber" metadata="RelationLabel" xpathType="Element" />
+            <metadata xpath="./g:OnlineURL" metadata="RelationProcessID" xpathType="Element" />
+        </group>
+     
+
+    </mapping>
+
+
+
+    <!-- use in combination with the intranda_workflow_xml_import to import data into the archive -->
+    <archiveImport>
+        <identifierField>recordid</identifierField>
+        <splitRecordXPath xpath="/g:Report/g:Data/g:Objects/g:Object/@ID" xpathType="Attribute" />
+        <hierarchyXPath xpath="/g:Report/g:Data/g:Objects/g:Object[@ID='{pv.id}']/g:ObjectNumber" xpathType="Element" split="_" />
+        <processTemplateName>TMS-KHM </processTemplateName>
+    </archiveImport>
+
+
 </config_plugin>
-

@@ -5,6 +5,7 @@
 		<exec executable="mvn">
 			<arg value="package" />
 		</exec>
-		<copy file="module-base/target/plugin-opac-generic-xml-base.jar" todir="/opt/digiverso/goobi/plugins/opac/"/>
+        <copy file="module-base/target/plugin-opac-generic-xml-base.jar" todir="/opt/digiverso/goobi/plugins/opac/"/>		
+		<copy file="module-lib/target/plugin-opac-generic-xml-lib.jar" todir="/opt/digiverso/goobi/plugins/GUI/"/>
 	</target>
 </project>
