@@ -140,6 +140,11 @@ Das Mapping der Inhalte des XML Records hin zu Goobi Metadaten geschieht in der 
 
     </mapping>
 
+    <authorization type="none">
+        <username></username>
+        <password></password>
+    </authorization>
+
 </config_plugin>
 ```
 
@@ -156,3 +161,5 @@ Im Feld `<person>` gibt es zusätzlich noch die beiden Attribute `firstname` und
 Das Element `<group>` enthält wiederum eine Liste von `<metadata>`, `<person>` und `<corporate>` Elementen. Bei `<group>` und `<person>` muss der Typ immer Element sein. Alle weiteren XPath Angaben beziehen sich dann auf dieses Element. 
 
 Im Fall von `String` können auch Manipulationen wie concat, substring genutzt werden. Die möglichen Funktionen sind hier beschrieben: [https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
+
+Falls die abzufragende Schnittstelle zugriffsgeschützt ist, können Zugangsdaten im Bereich `<authorization>` definiert werden. Im Moment stehen Optionen für `BASIC` und `NTLM` zur Verfügung. Dazu muss im Attribut `type` der gewünschte Authentifizierungstyp festgelegt werden. In `<username>` und `<password>` müssen die Zugangsdaten eingetragen werden.

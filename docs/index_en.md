@@ -138,6 +138,11 @@ The contents of the XML record are mapped to Goobi metadata in the `plugin_intra
             </group>
     </mapping>
 
+    <authorization type="none">
+        <username></username>
+        <password></password>
+    </authorization>
+
 </config_plugin>
 ```
 
@@ -154,3 +159,5 @@ The `<person>` field also contains the two attributes `firstname` and `lastname`
 The `<group>` element in turn contains a list of `<metadata>`, `<person>` and `<corporate>` elements. For `<group>` and `<person>`, the type must always be element. All other XPath information then refers to this element. 
 
 In the case of `String`, manipulations such as concat, substring can also be used. The possible functions are described here:[https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
+
+If the interface to be queried is access-protected, access data can be defined in the `<authorization>` section. Options for `BASIC` and `NTLM` are currently available. To do this, the desired authentication type must be specified in the `type` attribute. The access data must be entered in `<username>` and `<password>`.
