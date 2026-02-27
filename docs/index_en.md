@@ -138,6 +138,11 @@ The contents of the XML record are mapped to Goobi metadata in the `plugin_intra
             </group>
     </mapping>
 
+    <authorization type="none">
+        <username></username>
+        <password></password>
+    </authorization>
+
 </config_plugin>
 ```
 
@@ -147,10 +152,12 @@ The type to be used can be specified in the `<docstructs>` area. This is done by
 
 Alternatively, the document type can also be read from the XML record. Then the element `<doctumenttypequery>` is used, in which an XPath expression is defined that describes which field is to be used. In addition, there are a number of `<docstruct>` elements that describe possible field contents. The attribute `xmlName` contains the value from the XML document, `rulesetName` contains the structure type to be created. If it is a multi-volume work, `anchorName` must also be specified with the name of the higher-level structure type.
 
-Next, the mapping for persons and metadata is configured in the `<mapping>` section. Here there is a list of `<metadata>`, `<person>`, `<corporate>` and `<group>` with the attributes `xpath`, `level`, `xpathType`, `authorityData` and `name`. In `xpath`, an XPath expression is configured that describes in which part of the XML document the content is expected; in `name`, the name of the metadata is defined in which the content is then to be written. The specification in `level` can be used to control whether the metadata for multi-volume works should be written to the data record of the anchor or the volume. In `xpathType`, the type of the result of the XPath query is specified. This can be an `element`, `attribute` or `string`. The attribute `authorityData` contains a path in which information on standard data is searched for.
+Next, the mapping for persons and metadata is configured in the `<mapping>` section. Here there is a list of `<metadata>`, `<person>`, `<corporate>` and `<group>` with the attributes `xpath`, `level`, `xpathType`, `authorityData` and `name`. In `xpath`, an XPath expression is configured that describes in which part of the XML document the content is expected. The term `{pv.id}` can be used to integrate the search parameter used into the expression. In `name`, the name of the metadata is defined in which the content is then to be written. The specification in `level` can be used to control whether the metadata for multi-volume works should be written to the data record of the anchor or the volume. In `xpathType`, the type of the result of the XPath query is specified. This can be an `element`, `attribute` or `string`. The attribute `authorityData` contains a path in which information on standard data is searched for.
 
 The `<person>` field also contains the two attributes `firstname` and `lastname`, in which the XPath expression for the first and last name details is configured.
 
 The `<group>` element in turn contains a list of `<metadata>`, `<person>` and `<corporate>` elements. For `<group>` and `<person>`, the type must always be element. All other XPath information then refers to this element. 
 
 In the case of `String`, manipulations such as concat, substring can also be used. The possible functions are described here:[https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
+
+If the interface to be queried is access-protected, access data can be defined in the `<authorization>` section. Options for `BASIC` and `NTLM` are currently available. To do this, the desired authentication type must be specified in the `type` attribute. The access data must be entered in `<username>` and `<password>`.

@@ -140,6 +140,11 @@ Das Mapping der Inhalte des XML Records hin zu Goobi Metadaten geschieht in der 
 
     </mapping>
 
+    <authorization type="none">
+        <username></username>
+        <password></password>
+    </authorization>
+
 </config_plugin>
 ```
 
@@ -149,10 +154,12 @@ Im Bereich `<docstructs>` kann der zu verwendende Typ festgelegt werden. Dies ge
 
 Alternativ kann der Typ des Dokuments auch aus dem XML Record gelesen werden. Dann wird das Element `<doctumenttypequery>` verwendet, in dem ein XPath-Ausdruck definiert ist, der beschreibt, welches Feld verwendet werden soll. Zusätzlich gibt es eine Reihe von `<docstruct>` Elementen, die mögliche Feldinhalte beschreiben. Das Attribut `xmlName` enthält den Wert aus dem XML Dokument, in `rulesetName` steht der anzulegende Strukturtyp. Sofern es sich um ein mehrbändiges Werk handelt, muss zusätzlich noch `anchorName` mit dem Namen des übergeordneten Strukturtyps angegeben werden.
 
-Anschließend wird das Mapping für Personen und Metadaten im Bereich `<mapping>` konfiguriert. Hier gibt es eine Liste von `<metadata>`, `<person>`, `<corporate>` und `<group>` mit den Attributen `xpath`, `level`, `xpathType`, `authorityData` und `name`. In `xpath` wird ein XPath Ausdruck konfiguriert, der beschreibt, in welchem Teil des XML Dokuments der Inhalt erwartet wird, in `name`wird der Name des Metadatums definiert, in das der Inhalt anschließend geschrieben werden soll. Mit der Angabe in `level` kann gesteuert werden, ob das Metadatum bei mehrbändigen Werken zum Datensatz des Anchors oder des Bandes geschrieben werden soll. In `xpathType` wird angegeben, welchen Typ das Ergebnis der XPath query hat. Dies kann ein `Element`, `Attribute` oder `String` sein. Das Attribut `authorityData` enthält einen Pfad, in dem Angaben zu Normdaten gesucht werden.
+Anschließend wird das Mapping für Personen und Metadaten im Bereich `<mapping>` konfiguriert. Hier gibt es eine Liste von `<metadata>`, `<person>`, `<corporate>` und `<group>` mit den Attributen `xpath`, `level`, `xpathType`, `authorityData` und `name`. In `xpath` wird ein XPath Ausdruck konfiguriert, der beschreibt, in welchem Teil des XML Dokuments der Inhalt erwartet wird, dabei kann der Term `{pv.id}` genutzt werden, um den genutzten Suchparameter in den Ausdruck zu integrieren. In `name`wird der Name des Metadatums definiert, in das der Inhalt anschließend geschrieben werden soll. Mit der Angabe in `level` kann gesteuert werden, ob das Metadatum bei mehrbändigen Werken zum Datensatz des Anchors oder des Bandes geschrieben werden soll. In `xpathType` wird angegeben, welchen Typ das Ergebnis der XPath query hat. Dies kann ein `Element`, `Attribute` oder `String` sein. Das Attribut `authorityData` enthält einen Pfad, in dem Angaben zu Normdaten gesucht werden.
 
 Im Feld `<person>` gibt es zusätzlich noch die beiden Attribute `firstname` und `lastname`, in dem der XPath Ausdruck für die Angaben zu Vor- und Nachname konfiguriert wird.
 
 Das Element `<group>` enthält wiederum eine Liste von `<metadata>`, `<person>` und `<corporate>` Elementen. Bei `<group>` und `<person>` muss der Typ immer Element sein. Alle weiteren XPath Angaben beziehen sich dann auf dieses Element. 
 
 Im Fall von `String` können auch Manipulationen wie concat, substring genutzt werden. Die möglichen Funktionen sind hier beschrieben: [https://www.w3schools.com/xml/xsl_functions.asp](https://www.w3schools.com/xml/xsl_functions.asp)
+
+Falls die abzufragende Schnittstelle zugriffsgeschützt ist, können Zugangsdaten im Bereich `<authorization>` definiert werden. Im Moment stehen Optionen für `BASIC` und `NTLM` zur Verfügung. Dazu muss im Attribut `type` der gewünschte Authentifizierungstyp festgelegt werden. In `<username>` und `<password>` müssen die Zugangsdaten eingetragen werden.
