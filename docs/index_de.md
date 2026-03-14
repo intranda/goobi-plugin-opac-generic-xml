@@ -34,7 +34,7 @@ Die Datei `plugin_intranda_opac_xml-lib.jar` enthält die Funktionalität zum pa
 ```
 
 
-Die Datei`plugin_intranda_opac_xml.xml` muss ebenfalls für den Nutzer `tomcat` lesbar sein und in folgendes Verzeichnis installiert werden:
+Die Datei `plugin_intranda_opac_xml.xml` muss ebenfalls für den Nutzer `tomcat` lesbar sein und in folgendes Verzeichnis installiert werden:
 
 ```bash
 /opt/digiverso/goobi/config/
@@ -77,7 +77,7 @@ In der Datei `goobi_opac.xml` muss die Schnittstelle zum gewünschten Katalogsys
 </catalogue>
 ```
 
-Das Attribut `title` enthält den Namen, unter dem der Katalog in der Nutzeroberfläche ausgewählt werden kann, `address` die URL zum API Endpoint und `opacType`das zu nutzende Plugin. In diesem Fall muss der Eintrag `intranda_opac_xml` lauten.
+Das Attribut `title` enthält den Namen, unter dem der Katalog in der Nutzeroberfläche ausgewählt werden kann, `address` die URL zum API Endpoint und `opacType` das zu nutzende Plugin. In diesem Fall muss der Eintrag `intranda_opac_xml` lauten.
 
 Es ist nur eine Suchanfrage konfigurierbar. Daher können die anderen Suchoptionen ausgeblendet werden. Dies geschieht innerhalb des `<searchFields>` Blocks. In der oben beschriebenen Konfiguration kann nur nach einem Identifier gesucht werden.
 
